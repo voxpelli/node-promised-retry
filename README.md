@@ -1,0 +1,74 @@
+# Promised Retry
+
+A generic promised based retry mechanism. Useful for eg. ensuring an available database or message queue connection
+
+## Installation
+
+```bash
+npm install promised-retry --save
+```
+
+## Usage
+
+Simple:
+
+```javascript
+var retryInstance = new Retry({
+  try: function () {
+    var db = new pg.Client(require('../config').db);
+    db.on('error', function () {
+      retryInstance.reset();
+      if (channels.length) {
+        retryInstance.try();
+      }
+    });
+    return new Promise(function (resolve, reject) {
+      db.connect(function (err) {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(db);
+        }
+      });
+    });
+  },
+  success: function (db) {
+    db.on('notification', self.processNotification.bind(self));
+
+    channels.forEach(function (channel) {
+      db.query('LISTEN ' + channel);
+    });
+  },
+  end: function (db) {
+    db.end();
+  },
+});
+```
+
+## Syntax
+
+`var retryInstance = new Retry(options);`
+
+## Options
+
+* **try** - the function that will make up the attempt. Should return a Promise that's fulfilled or rejected depending on ehwther the attempt is a success or failure.
+* **success** - a function that's run on an successful attempt. Will be sent the result of the attempt and can return a modified result or a Promise.
+* **end** - a function that will be run on the closing of the retry script. Useful for when needing to fix a graceful shutdown of eg. a database.
+* **name** – the name of the Retry attempt. Used in eg debugging.
+* **setup** – a funciton that will be run before the first attempt
+* **name** – the name of the Retry attempt. Used in eg debugging.
+* **retryMin** – minimum delay in milliseconds before a retry. Defaults to `0`.
+* **retryBase** – the base of the delay exponent. Defaults to `1.2`.
+* **retryExponent** – the maximum exponent of the delay exponent. If retries are higher than `retryExponent`, `retryExponent` will be used rather than the retry number. Defaults to `33` which means on average max delay of 3m 25s.
+* **retryDelay** – a function used to calculate the delay. Replaces the default exponent calculation. If it returns `false` the retries will be aborted.
+* **log** – a logger function. Defaults to `console.log()`.
+
+## Methods
+
+* **try** – returns a Promise that will be resolved with the successful attempt or rejected if the retries were aborted due to the result of `options.retryDelay()` or because the retry instance was ended.
+* **end** – ends the Retry mechanism completely. Useful for ensuring a graceful shutdown.
+* **reset** – resets the Retry mechanism. Used in response to an event that eg. indicated that the connectin the Retry mechanism managed to established has errored out. Will not result in a retry automatically. That has to be done manually if one wants one right away.
+
+## Lint / Test
+
+`npm test` or to watch, install `grunt-cli` then do `grunt watch`
