@@ -6,10 +6,15 @@
 var _ = require('lodash');
 var Promise = require('promise');
 
+var assert = require('assert');
+
 var Retry = function (options) {
   options = _.extend({
     name: 'unknown',
     setup: Promise.resolve,
+    try: undefined,
+    success: undefined,
+    end: undefined,
     retryMin: 0,
     retryBase: 1.2,
     retryExponent: 33,
@@ -22,6 +27,8 @@ var Retry = function (options) {
     },
     log: console.log.bind(console),
   }, options);
+
+  assert(options.try && options.success && options.end, 'Promised-retry needs to be provided a "try", "success" and "end" function');
 
   this.options = options;
   this.log = options.log;
