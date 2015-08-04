@@ -1,5 +1,5 @@
 /* jshint node: true, expr: true */
-/* global beforeEach, afterEach, describe, it, -Promise */
+/* global beforeEach, afterEach, describe, it */
 
 'use strict';
 
@@ -7,8 +7,6 @@ var chai = require('chai');
 var sinon = require('sinon');
 require('sinon-as-promised');
 var sinonChai = require('sinon-chai');
-
-var Promise = require('promise');
 
 chai.should();
 chai.use(sinonChai);

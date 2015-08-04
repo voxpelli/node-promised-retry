@@ -1,17 +1,17 @@
 /*jslint node: true */
-/* global -Promise */
 
 'use strict';
 
 var _ = require('lodash');
-var Promise = require('promise');
 
 var assert = require('assert');
 
 var Retry = function (options) {
   options = _.extend({
     name: 'unknown',
-    setup: Promise.resolve,
+    setup: function () {
+      return Promise.resolve();
+    },
     try: undefined,
     success: undefined,
     end: undefined,
@@ -72,7 +72,7 @@ Retry.prototype._try = function () {
   });
 };
 
-Retry.prototype.try = Promise.nodeify(function (createNew) {
+Retry.prototype.try = function (createNew, callback) {
   var self = this;
 
   if (self.promisedResult) {
@@ -91,8 +91,14 @@ Retry.prototype.try = Promise.nodeify(function (createNew) {
       return self.options.success(result) || result;
     });
 
-  return self.promisedResult;
-});
+  if (!callback) { return self.promisedResult; }
+
+  self.promisedResult
+    .then(function (result) {
+      callback(undefined, result);
+    })
+    .catch(callback);
+};
 
 Retry.prototype.end = function () {
   var self = this;
