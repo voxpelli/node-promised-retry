@@ -15,7 +15,7 @@
   "license": "MIT",
   "dependencies": {
     "lodash": "^2.4.1",
-    "promise": "^5.0.0"
+    "promise": "^7.0.0"
   },
   "engines": {
     "node": ">=0.10.0",
