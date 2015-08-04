@@ -5,6 +5,7 @@ var lintlovin = require('lintlovin');
 
 module.exports = function (grunt) {
   lintlovin.initConfig(grunt, {}, {
+    spaceFiles: ['!package.json'],
     enableCoverageEvent: true
   });
 
