@@ -67,7 +67,7 @@ var retryInstance = new Retry({
 
 * **try** – returns a Promise that will be resolved with the successful attempt or rejected if the retries were aborted due to the result of `options.retryDelay()` or because the retry instance was ended.
 * **end** – ends the Retry mechanism completely. Useful for ensuring a graceful shutdown.
-* **reset** – resets the Retry mechanism. Used in response to an event that eg. indicated that the connectin the Retry mechanism managed to established has errored out. Will not result in a retry automatically. That has to be done manually if one wants one right away.
+* **reset** – resets the Retry mechanism. Used in response to an event that eg. indicated that the connection the Retry mechanism managed to established has errored out. Will not result in a retry automatically. That has to be done manually if one wants one right away.
 
 ## Lint / Test
 
