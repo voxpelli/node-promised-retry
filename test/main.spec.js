@@ -18,27 +18,26 @@ describe('Retry', function () {
 
   var clock;
 
-  var nextTickUntilCondition = function (condition) {
+  var repeatUntilCondition = function (condition) {
     return new Promise(function (resolve) {
       process.nextTick(function () {
-        resolve(condition() ? undefined : nextTickUntilCondition(condition));
+        var callback = function () {
+          resolve(condition() ? undefined : repeatUntilCondition(condition));
+        };
+        if (clock) {
+          setImmediate(callback);
+          clock.tick(1000);
+        } else {
+          callback();
+        }
       });
     });
   };
 
-  var waitForNextTickCondition = function (condition) {
+  var waitForCondition = function (condition) {
     return function () {
-      return nextTickUntilCondition(condition);
+      return repeatUntilCondition(condition);
     };
-  };
-
-  var waitForTimers = function () {
-    return new Promise(function (resolve) {
-      setImmediate(function () {
-        resolve();
-      });
-      clock.tick(10);
-    });
   };
 
   afterEach(function () {
@@ -86,28 +85,33 @@ describe('Retry', function () {
 
       retryStub.returns(1);
 
-      console.log('START!');
+      var fulfilled = false;
 
       var result = retryInstance.try().then(function () {
+        fulfilled = true;
+
         tryStub.should.have.been.calledThrice;
         successSpy.should.have.been.calledOnce;
         successSpy.should.have.been.calledWith('abc123');
         endSpy.should.not.have.been.calledOnce;
+      }).catch(function (err) {
+        fulfilled = true;
+        throw err;
       });
 
       return Promise.resolve()
-        .then(waitForNextTickCondition(function () {
+        .then(waitForCondition(function () {
           return tryStub.callCount === 1 && retryStub.callCount === 1;
         }))
-        .then(waitForTimers)
-        .then(waitForNextTickCondition(function () {
+        .then(waitForCondition(function () {
           return tryStub.callCount === 2 && retryStub.callCount === 2;
         }))
-        .then(waitForTimers)
+        .then(waitForCondition(function () {
+          return fulfilled === true;
+        }))
         .then(function () {
           return result;
         });
-
     });
 
   });
