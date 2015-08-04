@@ -27,10 +27,14 @@
     "prepush": "npm test"
   },
   "devDependencies": {
+    "chai": "^3.2.0",
     "grunt": "^0.4.5",
     "husky": "^0.6.2",
     "istanbul": "^0.3.4",
     "lintlovin": "^1.8.0",
-    "mocha": "^2.0.1"
+    "mocha": "^2.0.1",
+    "sinon": "^1.15.4",
+    "sinon-as-promised": "^4.0.0",
+    "sinon-chai": "^2.8.0"
   }
 }
