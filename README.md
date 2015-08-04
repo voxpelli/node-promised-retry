@@ -2,6 +2,10 @@
 
 A generic promised based retry mechanism. Useful for eg. ensuring an available database or message queue connection
 
+[![Build Status](https://travis-ci.org/voxpelli/node-promised-retry.svg?branch=master)](https://travis-ci.org/voxpelli/node-promised-retry)
+[![Coverage Status](https://coveralls.io/repos/voxpelli/node-promised-retry/badge.svg)](https://coveralls.io/r/voxpelli/node-promised-retry)
+[![Dependency Status](https://gemnasium.com/voxpelli/node-promised-retry.svg)](https://gemnasium.com/voxpelli/node-promised-retry)
+
 ## Installation
 
 ```bash
