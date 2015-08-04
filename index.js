@@ -2,12 +2,10 @@
 
 'use strict';
 
-var _ = require('lodash');
-
 var assert = require('assert');
 
 var Retry = function (options) {
-  options = _.extend({
+  var resolvedOptions = {
     name: 'unknown',
     setup: function () {
       return Promise.resolve();
@@ -26,12 +24,16 @@ var Retry = function (options) {
       );
     },
     log: console.log.bind(console),
-  }, options);
+  };
 
-  assert(options.try && options.success && options.end, 'Promised-retry needs to be provided a "try", "success" and "end" function');
+  for (var key in options) {
+    resolvedOptions[key] = options[key];
+  }
 
-  this.options = options;
-  this.log = options.log;
+  assert(resolvedOptions.try && resolvedOptions.success && resolvedOptions.end, 'Promised-retry needs to be provided a "try", "success" and "end" function');
+
+  this.options = resolvedOptions;
+  this.log = resolvedOptions.log;
   this.failures = 0;
 };
 
