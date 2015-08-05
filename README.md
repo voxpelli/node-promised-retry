@@ -57,9 +57,9 @@ var retryInstance = new Retry({
 
 * **try** - the function that will make up the attempt. Should return a Promise that's fulfilled or rejected depending on ehwther the attempt is a success or failure.
 * **success** - a function that's run on an successful attempt. Will be sent the result of the attempt and can return a modified result or a Promise.
-* **end** - a function that will be run on the closing of the retry script. Useful for when needing to fix a graceful shutdown of eg. a database.
+* **end** - a function that will be run on the closing of the retry script. Useful for when needing to fix a graceful shutdown of eg. a database. Can return a Promise if it needs to do something that the shutdown needs to wait for.
 * **name** – the name of the Retry attempt. Used in eg debugging.
-* **setup** – a funciton that will be run before the first attempt
+* **setup** – a function that will be run before the first attempt
 * **name** – the name of the Retry attempt. Used in eg debugging.
 * **retryMin** – minimum delay in milliseconds before a retry. Defaults to `0`.
 * **retryBase** – the base of the delay exponent. Defaults to `1.2`.
@@ -70,7 +70,7 @@ var retryInstance = new Retry({
 ## Methods
 
 * **try** – returns a Promise that will be resolved with the successful attempt or rejected if the retries were aborted due to the result of `options.retryDelay()` or because the retry instance was ended.
-* **end** – ends the Retry mechanism completely. Useful for ensuring a graceful shutdown.
+* **end** – ends the Retry mechanism completely. Useful for ensuring a graceful shutdown. Returns a Promise that will be resolved when done.
 * **reset** – resets the Retry mechanism. Used in response to an event that eg. indicated that the connection the Retry mechanism managed to established has errored out. Will not result in a retry automatically. That has to be done manually if one wants one right away.
 
 ## Lint / Test
