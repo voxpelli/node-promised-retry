@@ -19,9 +19,9 @@ var Retry = function (options) {
     retryBase: 1.2,
     retryExponent: 33,
     retryDelay: function (retries) {
-      return options.retryMin + Math.floor(
+      return resolvedOptions.retryMin + Math.floor(
         1000 *
-        Math.pow(options.retryBase, Math.min(options.retryExponent, retries)) *
+        Math.pow(resolvedOptions.retryBase, Math.min(resolvedOptions.retryExponent, retries)) *
         Math.random()
       );
     },
