@@ -82,6 +82,11 @@ Retry.prototype._try = function () {
 Retry.prototype.try = function (createNew, callback) {
   var self = this;
 
+  if (typeof createNew === 'function') {
+    callback = createNew;
+    createNew = undefined;
+  }
+
   if (self.promisedResult) {
     return self.promisedResult;
   } else if (createNew === false) {

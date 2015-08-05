@@ -8,7 +8,7 @@ var sinon = require('sinon');
 require('sinon-as-promised');
 var sinonChai = require('sinon-chai');
 
-chai.should();
+var should = chai.should();
 chai.use(sinonChai);
 
 describe('Retry', function () {
@@ -126,6 +126,29 @@ describe('Retry', function () {
         successSpy.should.have.been.calledWith('abc123');
         endSpy.should.not.have.been.called;
         retryStub.should.not.have.been.called;
+      });
+    });
+
+    it('should call accept a callback on try', function (done) {
+      tryStub.resolves('abc123');
+
+      retryInstance.try(function (err, result) {
+        try {
+          should.not.exist(err);
+          should.exist(result);
+
+          result.should.equal('abc123');
+
+          tryStub.should.have.been.calledOnce;
+          successSpy.should.have.been.calledOnce;
+          successSpy.should.have.been.calledWith('abc123');
+          endSpy.should.not.have.been.called;
+          retryStub.should.not.have.been.called;
+
+          done();
+        } catch (e) {
+          done(e);
+        }
       });
     });
 
