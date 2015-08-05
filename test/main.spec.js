@@ -115,6 +115,49 @@ describe('Retry', function () {
         });
     });
 
+    it('should work with default retry', function () {
+      clock = sinon.useFakeTimers(Date.now());
+
+      retryInstance = new Retry({
+        try: tryStub,
+        success: successSpy,
+        end: endSpy,
+        log: function () {},
+      });
+
+      tryStub.onFirstCall().rejects(new Error('foo'));
+      tryStub.onSecondCall().rejects(new Error('bar'));
+      tryStub.resolves('abc123');
+
+      var fulfilled = false;
+
+      var result = retryInstance.try().then(function () {
+        fulfilled = true;
+
+        tryStub.should.have.been.calledThrice;
+        successSpy.should.have.been.calledOnce;
+        successSpy.should.have.been.calledWith('abc123');
+        endSpy.should.not.have.been.calledOnce;
+      }).catch(function (err) {
+        fulfilled = true;
+        throw err;
+      });
+
+      return Promise.resolve()
+        .then(waitForCondition(function () {
+          return tryStub.callCount === 1;
+        }))
+        .then(waitForCondition(function () {
+          return tryStub.callCount === 2;
+        }))
+        .then(waitForCondition(function () {
+          return fulfilled === true;
+        }))
+        .then(function () {
+          return result;
+        });
+    });
+
     it('should only attempt once, despite multiple calls', function () {
       tryStub.resolves('abc123');
 
