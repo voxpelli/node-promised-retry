@@ -4,6 +4,8 @@
 
 var assert = require('assert');
 
+var noop = function () {};
+
 var Retry = function (options) {
   var resolvedOptions = {
     name: 'unknown',
@@ -49,12 +51,15 @@ Retry.prototype._try = function () {
 
     if (self.failures) {
       var delay = self.options.retryDelay(self.failures);
+      var aborted;
       if (delay !== false) {
         self.log('Retry %d: Waiting %d ms to try %s again', self.failures, delay, self.options.name);
         self.retrying = setTimeout(next, delay);
         self.abort = reject;
       } else {
-        reject(new Error('Retries aborted after %d attempts', self.failures));
+        aborted = new Error('Retries aborted after ' + self.failures + ' attempts');
+        aborted.aborted = true;
+        reject(aborted);
       }
     } else {
       process.nextTick(next);
@@ -62,7 +67,7 @@ Retry.prototype._try = function () {
   }).catch(function (err) {
     self.log(err, 'Failed retry attempt for ' + self.options.name);
 
-    if (self.stopped) {
+    if (self.stopped || err.aborted) {
       throw err;
     }
 
@@ -107,9 +112,9 @@ Retry.prototype.end = function () {
 
   this.stopped = true;
 
-  this.try(true).then(function (result) {
+  var result = this.try(true).catch(noop).then(function (result) {
     self.promisedResult = undefined;
-    self.options.end(result);
+    return self.options.end(result);
   });
 
   if (this.retrying) {
@@ -120,6 +125,8 @@ Retry.prototype.end = function () {
       this.abort(new Error('Retries of ' + self.options.name + ' ended'));
     }
   }
+
+  return result;
 };
 
 Retry.prototype.reset = function () {

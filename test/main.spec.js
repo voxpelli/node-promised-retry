@@ -16,11 +16,13 @@ describe('Retry', function () {
 
   var clock;
 
-  var repeatUntilCondition = function (condition) {
-    return new Promise(function (resolve) {
+  var repeatUntilCondition = function (condition, count) {
+    return new Promise(function (resolve, reject) {
+      if (count > 100) { return reject(new Error('repeatUntilCondition repeated for too long')); }
+
       process.nextTick(function () {
         var callback = function () {
-          resolve(condition() ? undefined : repeatUntilCondition(condition));
+          resolve(condition() ? undefined : repeatUntilCondition(condition, count ? count + 1 : 1));
         };
         if (clock) {
           setImmediate(callback);
@@ -45,20 +47,21 @@ describe('Retry', function () {
     }
   });
 
-  describe('callbacks', function () {
+  describe('main', function () {
     var tryStub, successSpy, endSpy, retryStub, retryInstance;
 
     beforeEach(function () {
       tryStub = sinon.stub();
       successSpy = sinon.spy();
       endSpy = sinon.spy();
-      retryStub = sinon.stub();
+      retryStub = sinon.stub().returns(1);
 
       retryInstance = new Retry({
         try: tryStub,
         success: successSpy,
         end: endSpy,
         retryDelay: retryStub,
+        log: function () {},
       });
     });
 
@@ -80,8 +83,6 @@ describe('Retry', function () {
       tryStub.onFirstCall().rejects(new Error('foo'));
       tryStub.onSecondCall().rejects(new Error('bar'));
       tryStub.resolves('abc123');
-
-      retryStub.returns(1);
 
       var fulfilled = false;
 
@@ -108,6 +109,86 @@ describe('Retry', function () {
           return fulfilled === true;
         }))
         .then(function () {
+          return result;
+        });
+    });
+
+    it('should call end with successful result on end after success', function () {
+      tryStub.resolves('abc123');
+
+      return retryInstance.try()
+        .then(function () {
+          return retryInstance.end();
+        })
+        .then(function () {
+          tryStub.should.have.been.calledOnce;
+          successSpy.should.have.been.calledOnce;
+          successSpy.should.have.been.calledWith('abc123');
+          endSpy.should.have.been.calledOnce;
+          endSpy.should.have.been.calledWith('abc123');
+          retryStub.should.not.have.been.called;
+        });
+    });
+
+    it('should abort retries on end call during retries', function () {
+      clock = sinon.useFakeTimers(Date.now());
+
+      tryStub.rejects(new Error('foo'));
+
+      retryInstance.try().then(function () {
+        process.nextTick(function () {
+          throw new Error('try() should not succeed');
+        });
+      });
+
+      var waitTicks = 3;
+
+      return Promise.resolve()
+        .then(waitForCondition(function () {
+          return tryStub.callCount === 1 && retryStub.callCount === 1;
+        }))
+        .then(function () {
+          return retryInstance.end();
+        })
+        .then(waitForCondition(function () {
+          return --waitTicks === 0;
+        }))
+        .then(function () {
+          tryStub.should.have.been.called;
+          retryStub.should.have.been.calledOnce;
+          successSpy.should.not.have.been.called;
+          endSpy.should.have.been.calledOnce;
+          endSpy.should.have.been.calledWith(undefined);
+        });
+    });
+
+    it('should abort when retry function says so', function () {
+      clock = sinon.useFakeTimers(Date.now());
+
+      tryStub.rejects(new Error('foo'));
+      retryStub.onFirstCall().returns(1);
+      retryStub.returns(false);
+
+      var fulfilled = false;
+
+      var result = retryInstance.try().then(function () {
+        fulfilled = true;
+        throw new Error('try() should not succeed');
+      }, function () {
+        fulfilled = true;
+      });
+
+      return Promise.resolve()
+        .then(waitForCondition(function () {
+          return tryStub.callCount === 1 && retryStub.callCount === 1;
+        }))
+        .then(waitForCondition(function () {
+          return fulfilled === true;
+        }))
+        .then(function () {
+          tryStub.should.have.been.calledTwice;
+          retryStub.should.have.been.calledTwice;
+
           return result;
         });
     });
