@@ -162,6 +162,27 @@ describe('Retry', function () {
         });
     });
 
+
+    it('should not make any attempts if ended before the first one', function () {
+      clock = sinon.useFakeTimers(Date.now());
+
+      tryStub.rejects(new Error('foo'));
+
+      var waitTicks = 3;
+
+      return retryInstance.end()
+        .then(waitForCondition(function () {
+          return --waitTicks === 0;
+        }))
+        .then(function () {
+          tryStub.should.not.have.been.called;
+          retryStub.should.not.have.been.called;
+          successSpy.should.not.have.been.called;
+          endSpy.should.have.been.calledOnce;
+          endSpy.should.have.been.calledWith(undefined);
+        });
+    });
+
     it('should abort when retry function says so', function () {
       clock = sinon.useFakeTimers(Date.now());
 

@@ -112,7 +112,7 @@ Retry.prototype.end = function () {
 
   this.stopped = true;
 
-  var result = this.try(true).catch(noop).then(function (result) {
+  var result = this.try(false).catch(noop).then(function (result) {
     self.promisedResult = undefined;
     return self.options.end(result);
   });
