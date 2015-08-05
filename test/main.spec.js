@@ -70,6 +70,7 @@ describe('Retry', function () {
 
       return retryInstance.try().then(function (result) {
         result.should.equal('abc123');
+
         tryStub.should.have.been.calledOnce;
         successSpy.should.have.been.calledOnce;
         successSpy.should.have.been.calledWith('abc123');
@@ -120,12 +121,26 @@ describe('Retry', function () {
       retryInstance.try();
       retryInstance.try();
 
-      return retryInstance.try().then(function () {
+      return retryInstance.try().then(function (result) {
+        result.should.equal('abc123');
+
         tryStub.should.have.been.calledOnce;
         successSpy.should.have.been.calledOnce;
         successSpy.should.have.been.calledWith('abc123');
         endSpy.should.not.have.been.called;
         retryStub.should.not.have.been.called;
+
+        return retryInstance.try();
+      }).then(function (result) {
+        result.should.equal('abc123');
+
+        tryStub.should.have.been.calledOnce;
+        successSpy.should.have.been.calledOnce;
+        successSpy.should.have.been.calledWith('abc123');
+        endSpy.should.not.have.been.called;
+        retryStub.should.not.have.been.called;
+
+        return retryInstance.try();
       });
     });
 
