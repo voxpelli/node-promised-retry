@@ -1,6 +1,6 @@
 {
   "name": "promised-retry",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "A generic promised based retry mechanism. Useful for eg. ensuring an available database or message queue connection",
   "homepage": "http://github.com/voxpelli/node-promised-retry",
   "repository": {

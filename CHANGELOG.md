@@ -1,3 +1,11 @@
+### 0.2.2 (2015-08-05)
+
+
+#### Bug Fixes
+
+* **main:** default retry delay wasn't working ([4f66c045](http://github.com/voxpelli/node-promised-retry/commit/4f66c04568ad1ad73cdfd3630337990a8619e97d))
+
+
 ### 0.2.1 (2015-08-05)
 
 
