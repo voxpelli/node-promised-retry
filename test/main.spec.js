@@ -187,7 +187,7 @@ describe('Retry', function () {
       });
     });
 
-    it('should call accept a callback on try', function (done) {
+    it('should accept a regular node.js-style callback on the try() method', function (done) {
       tryStub.resolves('abc123');
 
       retryInstance.try(function (err, result) {
@@ -332,7 +332,7 @@ describe('Retry', function () {
         });
     });
 
-    it('should make a new attempt after a reset', function () {
+    it('should make a new attempt if attempt is requested after a reset', function () {
       tryStub.onFirstCall().resolves('abc123');
       tryStub.resolves('xyz789');
 
