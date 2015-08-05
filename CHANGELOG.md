@@ -1,3 +1,13 @@
+### 0.2.1 (2015-08-05)
+
+
+#### Bug Fixes
+
+* **main:**
+  * if not started, when ending, do nothing ([8be97b23](http://github.com/voxpelli/node-promised-retry/commit/8be97b2373d356a9c2d82638be4f470f4daa432a))
+  * more tests + fixed some bugs found ([3883e5ac](http://github.com/voxpelli/node-promised-retry/commit/3883e5ac6c65ad17e807549e6873d62e8613b20a))
+
+
 ## 0.2.0 (2015-08-04)
 
 
