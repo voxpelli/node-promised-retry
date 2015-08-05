@@ -46,6 +46,7 @@ Retry.prototype._try = function () {
     var next = function () {
       self.retrying = undefined;
       self.abort = undefined;
+      if (self.stopped) { return reject(new Error(self.options.name + ' has been stopped')); }
       self.options.try().then(resolve, reject);
     };
 
@@ -89,7 +90,7 @@ Retry.prototype.try = function (createNew, callback) {
 
   if (self.promisedResult) {
     return self.promisedResult;
-  } else if (createNew === false) {
+  } else if (createNew === false || this.stopped) {
     return Promise.reject(new Error('No available instance'));
   }
 

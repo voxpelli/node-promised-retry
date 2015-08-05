@@ -237,6 +237,27 @@ describe('Retry', function () {
         });
     });
 
+    it('should ignore any attempts if ended', function () {
+      tryStub.resolves('abc123');
+
+      return retryInstance.end()
+        .then(function () {
+          return retryInstance.try();
+        })
+        .then(
+          function () {
+            throw new Error('try() should not resolve after an ending');
+          },
+          function () {
+            tryStub.should.not.have.been.called;
+            retryStub.should.not.have.been.called;
+            successSpy.should.not.have.been.called;
+            endSpy.should.have.been.calledOnce;
+            endSpy.should.have.been.calledWith(undefined);
+          }
+        );
+    });
+
     it('should abort when retry function says so', function () {
       clock = sinon.useFakeTimers(Date.now());
 
@@ -266,6 +287,33 @@ describe('Retry', function () {
 
           return result;
         });
+    });
+
+    it('should make a new attempt after a reset', function () {
+      tryStub.onFirstCall().resolves('abc123');
+      tryStub.resolves('xyz789');
+
+      return retryInstance.try().then(function (result) {
+        result.should.equal('abc123');
+
+        tryStub.should.have.been.calledOnce;
+        successSpy.should.have.been.calledOnce;
+        successSpy.should.have.been.calledWith('abc123');
+        endSpy.should.not.have.been.called;
+        retryStub.should.not.have.been.called;
+
+        retryInstance.reset();
+
+        return retryInstance.try();
+      }).then(function (result) {
+        result.should.equal('xyz789');
+
+        tryStub.should.have.been.calledTwice;
+        successSpy.should.have.been.calledTwice;
+        successSpy.should.have.been.calledWith('xyz789');
+        endSpy.should.not.have.been.called;
+        retryStub.should.not.have.been.called;
+      });
     });
 
   });
