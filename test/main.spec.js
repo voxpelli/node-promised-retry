@@ -68,7 +68,8 @@ describe('Retry', function () {
     it('should call success on successful try', function () {
       tryStub.resolves('abc123');
 
-      return retryInstance.try().then(function () {
+      return retryInstance.try().then(function (result) {
+        result.should.equal('abc123');
         tryStub.should.have.been.calledOnce;
         successSpy.should.have.been.calledOnce;
         successSpy.should.have.been.calledWith('abc123');
@@ -111,6 +112,21 @@ describe('Retry', function () {
         .then(function () {
           return result;
         });
+    });
+
+    it('should only attempt once, despite multiple calls', function () {
+      tryStub.resolves('abc123');
+
+      retryInstance.try();
+      retryInstance.try();
+
+      return retryInstance.try().then(function () {
+        tryStub.should.have.been.calledOnce;
+        successSpy.should.have.been.calledOnce;
+        successSpy.should.have.been.calledWith('abc123');
+        endSpy.should.not.have.been.called;
+        retryStub.should.not.have.been.called;
+      });
     });
 
     it('should call end with successful result on end after success', function () {
