@@ -1,3 +1,18 @@
+### 0.2.3 (2015-08-20)
+
+
+#### Bug Fixes
+
+* **main:** stopped retrying doesn't mean ending ([7c78b25d](http://github.com/voxpelli/node-promised-retry/commit/7c78b25d5f84dde2e1dfe8e434430d92fd10152e))
+
+
+#### Features
+
+* **main:**
+  * allow retries to be limited ([11c5c607](http://github.com/voxpelli/node-promised-retry/commit/11c5c607b5a1c35fd17334b79e122e586b5d03fa))
+  * allow retries to be limited ([7bb985c0](http://github.com/voxpelli/node-promised-retry/commit/7bb985c013caceef40216dd809caa225a7900506))
+
+
 ### 0.2.2 (2015-08-05)
 
 
