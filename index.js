@@ -18,6 +18,7 @@ var Retry = function (options) {
     retryMin: 0,
     retryBase: 1.2,
     retryExponent: 33,
+    retryLimit: undefined,
     retryDelay: function (retries) {
       return resolvedOptions.retryMin + Math.floor(
         1000 *
@@ -75,6 +76,12 @@ Retry.prototype._try = function () {
     self.failures += 1;
     self.retrying = undefined;
     self.abort = undefined;
+
+
+    if (self.options.retryLimit !== undefined && self.failures >= self.options.retryLimit) {
+      self.end();
+      return Promise.reject(new Error('Retry limit reached'));
+    }
 
     return self._try();
   });

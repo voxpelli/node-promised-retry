@@ -65,6 +65,7 @@ var retryInstance = new Retry({
 * **retryBase** – the base of the delay exponent. Defaults to `1.2`.
 * **retryExponent** – the maximum exponent of the delay exponent. If retries are higher than `retryExponent`, `retryExponent` will be used rather than the retry number. Defaults to `33` which means on average max delay of 3m 25s.
 * **retryDelay** – a function used to calculate the delay. Replaces the default exponent calculation. If it returns `false` the retries will be aborted.
+* **retryLimit** – maximum amount of retries. Defaults to unlimited retries.
 * **log** – a logger function. Defaults to `console.log()`.
 
 ## Methods
