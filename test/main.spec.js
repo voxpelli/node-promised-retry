@@ -359,6 +359,29 @@ describe('Retry', function () {
       });
     });
 
+    it('should abort retries after limit is reached', function () {
+      tryStub.rejects(new Error('foo'));
+
+      retryInstance = new Retry({
+        try: tryStub,
+        success: successSpy,
+        end: endSpy,
+        retryDelay: retryStub,
+        log: function () {},
+        retryLimit: 0
+      });
+
+      return retryInstance.try().catch(function (err) {
+        err.should.be.an('Error');
+        err.message.should.equal('Retry limit reached');
+
+        tryStub.should.have.been.calledOnce;
+        successSpy.should.not.have.been.called;
+        endSpy.should.not.have.been.called;
+        retryStub.should.not.have.been.called;
+      });
+    });
+
   });
 
 });
