@@ -360,6 +360,8 @@ describe('Retry', function () {
     });
 
     it('should abort retries after limit is reached', function () {
+      clock = sinon.useFakeTimers(Date.now());
+
       tryStub.rejects(new Error('foo'));
 
       retryInstance = new Retry({
@@ -368,18 +370,36 @@ describe('Retry', function () {
         end: endSpy,
         retryDelay: retryStub,
         log: function () {},
-        retryLimit: 0
+        retryLimit: 1
       });
 
-      return retryInstance.try().catch(function (err) {
+      var fulfilled = false;
+
+      var result = retryInstance.try().catch(function (err) {
+        fulfilled = true;
+
         err.should.be.an('Error');
         err.message.should.equal('Retry limit reached');
 
-        tryStub.should.have.been.calledOnce;
+        tryStub.should.have.been.calledTwice;
         successSpy.should.not.have.been.called;
         endSpy.should.not.have.been.called;
-        retryStub.should.not.have.been.called;
+        retryStub.should.have.been.calledOnce;
       });
+
+      return Promise.resolve()
+        .then(waitForCondition(function () {
+          return tryStub.callCount === 1 && retryStub.callCount === 1;
+        }))
+        .then(waitForCondition(function () {
+          return tryStub.callCount === 2;
+        }))
+        .then(waitForCondition(function () {
+          return fulfilled === true;
+        }))
+        .then(function () {
+          return result;
+        });
     });
 
   });
