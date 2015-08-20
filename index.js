@@ -77,10 +77,8 @@ Retry.prototype._try = function () {
     self.retrying = undefined;
     self.abort = undefined;
 
-
-    if (self.options.retryLimit !== undefined && self.failures >= self.options.retryLimit) {
-      self.end();
-      return Promise.reject(new Error('Retry limit reached'));
+    if (self.options.retryLimit !== undefined && self.failures > self.options.retryLimit) {
+      throw new Error('Retry limit reached');
     }
 
     return self._try();
