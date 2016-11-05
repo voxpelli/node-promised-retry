@@ -2,14 +2,12 @@
 
 const assert = require('assert');
 
-const noop = function () {};
+const noop = () => {};
 
 const Retry = function (options) {
   const resolvedOptions = Object.assign({
     name: 'unknown',
-    setup: function () {
-      return Promise.resolve();
-    },
+    setup: () => Promise.resolve(),
     try: undefined,
     success: undefined,
     end: undefined,
@@ -17,7 +15,7 @@ const Retry = function (options) {
     retryBase: 1.2,
     retryExponent: 33,
     retryLimit: undefined,
-    retryDelay: function (retries) {
+    retryDelay: retries => {
       return resolvedOptions.retryMin + Math.floor(
         1000 *
         Math.pow(resolvedOptions.retryBase, Math.min(resolvedOptions.retryExponent, retries)) *
@@ -35,91 +33,81 @@ const Retry = function (options) {
 };
 
 Retry.prototype._try = function () {
-  const self = this;
-
-  return new Promise(function (resolve, reject) {
-    const next = function () {
-      self.retrying = undefined;
-      self.abort = undefined;
-      if (self.stopped) { return reject(new Error(self.options.name + ' has been stopped')); }
-      self.options.try().then(resolve, reject);
+  return new Promise((resolve, reject) => {
+    const next = () => {
+      this.retrying = undefined;
+      this.abort = undefined;
+      if (this.stopped) { return reject(new Error(this.options.name + ' has been stopped')); }
+      this.options.try().then(resolve, reject);
     };
 
-    if (self.failures) {
-      const delay = self.options.retryDelay(self.failures);
+    if (this.failures) {
+      const delay = this.options.retryDelay(this.failures);
       if (delay !== false) {
-        self.log('Retry %d: Waiting %d ms to try %s again', self.failures, delay, self.options.name);
-        self.retrying = setTimeout(next, delay);
-        self.abort = reject;
+        this.log('Retry %d: Waiting %d ms to try %s again', this.failures, delay, this.options.name);
+        this.retrying = setTimeout(next, delay);
+        this.abort = reject;
       } else {
-        let aborted = new Error('Retries aborted after ' + self.failures + ' attempts');
+        let aborted = new Error('Retries aborted after ' + this.failures + ' attempts');
         aborted.aborted = true;
         reject(aborted);
       }
     } else {
       process.nextTick(next);
     }
-  }).catch(function (err) {
-    self.log(err, 'Failed retry attempt for ' + self.options.name);
+  }).catch(err => {
+    this.log(err, 'Failed retry attempt for ' + this.options.name);
 
-    if (self.stopped || err.aborted) {
+    if (this.stopped || err.aborted) {
       throw err;
     }
 
-    self.failures += 1;
-    self.retrying = undefined;
-    self.abort = undefined;
+    this.failures += 1;
+    this.retrying = undefined;
+    this.abort = undefined;
 
-    if (self.options.retryLimit !== undefined && self.failures > self.options.retryLimit) {
+    if (this.options.retryLimit !== undefined && this.failures > this.options.retryLimit) {
       throw new Error('Retry limit reached');
     }
 
-    return self._try();
+    return this._try();
   });
 };
 
 Retry.prototype.try = function (createNew, callback) {
-  const self = this;
-
   if (typeof createNew === 'function') {
     callback = createNew;
     createNew = undefined;
   }
 
-  if (self.promisedResult) {
-    return self.promisedResult;
+  if (this.promisedResult) {
+    return this.promisedResult;
   } else if (createNew === false || this.stopped) {
     return Promise.reject(new Error('No available instance'));
   }
 
-  self.promisedResult = Promise.resolve()
-    .then(function () {
-      return self.options.setup();
-    })
-    .then(self._try.bind(self))
-    .then(function (result) {
-      self.log('Successful retry attempt for %s', self.options.name);
-      self.failures = 0;
-      return self.options.success(result) || result;
+  this.promisedResult = Promise.resolve()
+    .then(() => this.options.setup())
+    .then(() => this._try())
+    .then(result => {
+      this.log('Successful retry attempt for %s', this.options.name);
+      this.failures = 0;
+      return this.options.success(result) || result;
     });
 
-  if (!callback) { return self.promisedResult; }
+  if (!callback) { return this.promisedResult; }
 
-  self.promisedResult
-    .then(function (result) {
-      callback(undefined, result);
-    })
+  this.promisedResult
+    .then(result => { callback(undefined, result); })
     .catch(callback);
 };
 
 Retry.prototype.end = function () {
-  const self = this;
-
   this.stopped = true;
 
-  const result = this.try(false).catch(noop).then(function (result) {
-    self.promisedResult = undefined;
-    return self.options.end(result);
+  const result = this.try(false).catch(noop).then(result => {
+    this.promisedResult = undefined;
+    return this.options.end(result);
   });
 
   if (this.retrying) {
@@ -127,7 +115,7 @@ Retry.prototype.end = function () {
     this.retrying = undefined;
     this.promisedResult = undefined;
     if (this.abort) {
-      this.abort(new Error('Retries of ' + self.options.name + ' ended'));
+      this.abort(new Error('Retries of ' + this.options.name + ' ended'));
     }
   }
 
