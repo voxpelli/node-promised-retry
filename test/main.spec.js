@@ -1,6 +1,3 @@
-/* jshint node: true, expr: true */
-/* global beforeEach, afterEach, describe, it */
-
 'use strict';
 
 var chai = require('chai');
@@ -61,7 +58,7 @@ describe('Retry', function () {
         success: successSpy,
         end: endSpy,
         retryDelay: retryStub,
-        log: function () {},
+        log: function () {}
       });
     });
 
@@ -122,7 +119,7 @@ describe('Retry', function () {
         try: tryStub,
         success: successSpy,
         end: endSpy,
-        log: function () {},
+        log: function () {}
       });
 
       tryStub.onFirstCall().rejects(new Error('foo'));
@@ -258,7 +255,6 @@ describe('Retry', function () {
           endSpy.should.have.been.calledWith(undefined);
         });
     });
-
 
     it('should not make any attempts if ended before the first one', function () {
       clock = sinon.useFakeTimers(Date.now());
@@ -401,7 +397,5 @@ describe('Retry', function () {
           return result;
         });
     });
-
   });
-
 });

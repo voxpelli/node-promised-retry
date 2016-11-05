@@ -1,5 +1,3 @@
-/*jslint node: true */
-
 'use strict';
 
 var assert = require('assert');
@@ -26,7 +24,7 @@ var Retry = function (options) {
         Math.random()
       );
     },
-    log: console.log.bind(console),
+    log: console.log.bind(console)
   };
 
   for (var key in options) {
@@ -99,7 +97,8 @@ Retry.prototype.try = function (createNew, callback) {
     return Promise.reject(new Error('No available instance'));
   }
 
-  self.promisedResult = Promise.resolve().then(function () {
+  self.promisedResult = Promise.resolve()
+    .then(function () {
       return self.options.setup();
     })
     .then(self._try.bind(self))
