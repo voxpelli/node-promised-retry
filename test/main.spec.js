@@ -1,24 +1,24 @@
 'use strict';
 
-var chai = require('chai');
-var sinon = require('sinon');
+const chai = require('chai');
+const sinon = require('sinon');
 require('sinon-as-promised');
-var sinonChai = require('sinon-chai');
+const sinonChai = require('sinon-chai');
 
-var should = chai.should();
+const should = chai.should();
 chai.use(sinonChai);
 
 describe('Retry', function () {
-  var Retry = require('../');
+  const Retry = require('../');
 
-  var clock;
+  let clock;
 
-  var repeatUntilCondition = function (condition, count) {
+  const repeatUntilCondition = function (condition, count) {
     return new Promise(function (resolve, reject) {
       if (count > 100) { return reject(new Error('repeatUntilCondition repeated for too long')); }
 
       process.nextTick(function () {
-        var callback = function () {
+        const callback = function () {
           resolve(condition() ? undefined : repeatUntilCondition(condition, count ? count + 1 : 1));
         };
         if (clock) {
@@ -31,7 +31,7 @@ describe('Retry', function () {
     });
   };
 
-  var waitForCondition = function (condition) {
+  const waitForCondition = function (condition) {
     return function () {
       return repeatUntilCondition(condition);
     };
@@ -45,7 +45,7 @@ describe('Retry', function () {
   });
 
   describe('main', function () {
-    var tryStub, successSpy, endSpy, retryStub, retryInstance;
+    let tryStub, successSpy, endSpy, retryStub, retryInstance;
 
     beforeEach(function () {
       tryStub = sinon.stub();
@@ -83,9 +83,9 @@ describe('Retry', function () {
       tryStub.onSecondCall().rejects(new Error('bar'));
       tryStub.resolves('abc123');
 
-      var fulfilled = false;
+      let fulfilled = false;
 
-      var result = retryInstance.try().then(function () {
+      const result = retryInstance.try().then(function () {
         fulfilled = true;
 
         tryStub.should.have.been.calledThrice;
@@ -126,9 +126,9 @@ describe('Retry', function () {
       tryStub.onSecondCall().rejects(new Error('bar'));
       tryStub.resolves('abc123');
 
-      var fulfilled = false;
+      let fulfilled = false;
 
-      var result = retryInstance.try().then(function () {
+      const result = retryInstance.try().then(function () {
         fulfilled = true;
 
         tryStub.should.have.been.calledThrice;
@@ -235,7 +235,7 @@ describe('Retry', function () {
         });
       });
 
-      var waitTicks = 3;
+      let waitTicks = 3;
 
       return Promise.resolve()
         .then(waitForCondition(function () {
@@ -261,7 +261,7 @@ describe('Retry', function () {
 
       tryStub.rejects(new Error('foo'));
 
-      var waitTicks = 3;
+      let waitTicks = 3;
 
       return retryInstance.end()
         .then(waitForCondition(function () {
@@ -304,9 +304,9 @@ describe('Retry', function () {
       retryStub.onFirstCall().returns(1);
       retryStub.returns(false);
 
-      var fulfilled = false;
+      let fulfilled = false;
 
-      var result = retryInstance.try().then(function () {
+      const result = retryInstance.try().then(function () {
         fulfilled = true;
         throw new Error('try() should not succeed');
       }, function () {
@@ -369,9 +369,9 @@ describe('Retry', function () {
         retryLimit: 1
       });
 
-      var fulfilled = false;
+      let fulfilled = false;
 
-      var result = retryInstance.try().catch(function (err) {
+      const result = retryInstance.try().catch(function (err) {
         fulfilled = true;
 
         err.should.be.an('Error');

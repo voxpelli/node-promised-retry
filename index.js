@@ -1,11 +1,11 @@
 'use strict';
 
-var assert = require('assert');
+const assert = require('assert');
 
-var noop = function () {};
+const noop = function () {};
 
-var Retry = function (options) {
-  var resolvedOptions = {
+const Retry = function (options) {
+  const resolvedOptions = Object.assign({
     name: 'unknown',
     setup: function () {
       return Promise.resolve();
@@ -25,11 +25,7 @@ var Retry = function (options) {
       );
     },
     log: console.log.bind(console)
-  };
-
-  for (var key in options) {
-    resolvedOptions[key] = options[key];
-  }
+  }, options);
 
   assert(resolvedOptions.try && resolvedOptions.success && resolvedOptions.end, 'Promised-retry needs to be provided a "try", "success" and "end" function');
 
@@ -39,10 +35,10 @@ var Retry = function (options) {
 };
 
 Retry.prototype._try = function () {
-  var self = this;
+  const self = this;
 
   return new Promise(function (resolve, reject) {
-    var next = function () {
+    const next = function () {
       self.retrying = undefined;
       self.abort = undefined;
       if (self.stopped) { return reject(new Error(self.options.name + ' has been stopped')); }
@@ -50,14 +46,13 @@ Retry.prototype._try = function () {
     };
 
     if (self.failures) {
-      var delay = self.options.retryDelay(self.failures);
-      var aborted;
+      const delay = self.options.retryDelay(self.failures);
       if (delay !== false) {
         self.log('Retry %d: Waiting %d ms to try %s again', self.failures, delay, self.options.name);
         self.retrying = setTimeout(next, delay);
         self.abort = reject;
       } else {
-        aborted = new Error('Retries aborted after ' + self.failures + ' attempts');
+        let aborted = new Error('Retries aborted after ' + self.failures + ' attempts');
         aborted.aborted = true;
         reject(aborted);
       }
@@ -84,7 +79,7 @@ Retry.prototype._try = function () {
 };
 
 Retry.prototype.try = function (createNew, callback) {
-  var self = this;
+  const self = this;
 
   if (typeof createNew === 'function') {
     callback = createNew;
@@ -118,11 +113,11 @@ Retry.prototype.try = function (createNew, callback) {
 };
 
 Retry.prototype.end = function () {
-  var self = this;
+  const self = this;
 
   this.stopped = true;
 
-  var result = this.try(false).catch(noop).then(function (result) {
+  const result = this.try(false).catch(noop).then(function (result) {
     self.promisedResult = undefined;
     return self.options.end(result);
   });
