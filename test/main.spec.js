@@ -100,18 +100,10 @@ describe('Retry', function () {
       });
 
       return Promise.resolve()
-        .then(waitForCondition(function () {
-          return tryStub.callCount === 1 && retryStub.callCount === 1;
-        }))
-        .then(waitForCondition(function () {
-          return tryStub.callCount === 2 && retryStub.callCount === 2;
-        }))
-        .then(waitForCondition(function () {
-          return fulfilled === true;
-        }))
-        .then(function () {
-          return result;
-        });
+        .then(waitForCondition(() => tryStub.callCount === 1 && retryStub.callCount === 1))
+        .then(waitForCondition(() => tryStub.callCount === 2 && retryStub.callCount === 2))
+        .then(waitForCondition(() => fulfilled === true))
+        .then(() => result);
     });
 
     it('should work with default retry', function () {
@@ -213,9 +205,7 @@ describe('Retry', function () {
       tryStub.resolves('abc123');
 
       return retryInstance.try()
-        .then(function () {
-          return retryInstance.end();
-        })
+        .then(() => retryInstance.end())
         .then(function () {
           tryStub.should.have.been.calledOnce;
           successSpy.should.have.been.calledOnce;
@@ -240,12 +230,8 @@ describe('Retry', function () {
       let waitTicks = 30;
 
       return Promise.resolve()
-        .then(waitForCondition(function () {
-          return tryStub.callCount === 1 && retryStub.callCount === 1 ? retryInstance.end() : false;
-        }))
-        .then(waitForCondition(function () {
-          return --waitTicks === 0;
-        }))
+        .then(waitForCondition(() => tryStub.callCount === 1 && retryStub.callCount === 1 ? retryInstance.end() : false))
+        .then(waitForCondition(() => --waitTicks === 0))
         .then(function () {
           tryStub.should.have.been.called;
           retryStub.should.have.been.calledOnce;
@@ -263,9 +249,7 @@ describe('Retry', function () {
       let waitTicks = 3;
 
       return retryInstance.end()
-        .then(waitForCondition(function () {
-          return --waitTicks === 0;
-        }))
+        .then(waitForCondition(() => --waitTicks === 0))
         .then(function () {
           tryStub.should.not.have.been.called;
           retryStub.should.not.have.been.called;
@@ -279,13 +263,9 @@ describe('Retry', function () {
       tryStub.resolves('abc123');
 
       return retryInstance.end()
-        .then(function () {
-          return retryInstance.try();
-        })
+        .then(() => retryInstance.try())
         .then(
-          function () {
-            throw new Error('try() should not resolve after an ending');
-          },
+          () => Promise.reject(new Error('try() should not resolve after an ending')),
           function () {
             tryStub.should.not.have.been.called;
             retryStub.should.not.have.been.called;
@@ -313,12 +293,8 @@ describe('Retry', function () {
       });
 
       return Promise.resolve()
-        .then(waitForCondition(function () {
-          return tryStub.callCount === 1 && retryStub.callCount === 1;
-        }))
-        .then(waitForCondition(function () {
-          return fulfilled === true;
-        }))
+        .then(waitForCondition(() => tryStub.callCount === 1 && retryStub.callCount === 1))
+        .then(waitForCondition(() => fulfilled === true))
         .then(function () {
           tryStub.should.have.been.calledTwice;
           retryStub.should.have.been.calledTwice;
@@ -383,18 +359,10 @@ describe('Retry', function () {
       });
 
       return Promise.resolve()
-        .then(waitForCondition(function () {
-          return tryStub.callCount === 1 && retryStub.callCount === 1;
-        }))
-        .then(waitForCondition(function () {
-          return tryStub.callCount === 2;
-        }))
-        .then(waitForCondition(function () {
-          return fulfilled === true;
-        }))
-        .then(function () {
-          return result;
-        });
+        .then(waitForCondition(() => tryStub.callCount === 1 && retryStub.callCount === 1))
+        .then(waitForCondition(() => tryStub.callCount === 2))
+        .then(waitForCondition(() => fulfilled === true))
+        .then(() => result);
     });
   });
 });
