@@ -19,7 +19,7 @@ describe('Retry', function () {
 
       process.nextTick(function () {
         const callback = function () {
-          resolve(condition() ? undefined : repeatUntilCondition(condition, count ? count + 1 : 1));
+          resolve(condition() || repeatUntilCondition(condition, count ? count + 1 : 1));
         };
         if (clock) {
           setImmediate(callback);
@@ -235,17 +235,14 @@ describe('Retry', function () {
         process.nextTick(function () {
           throw new Error('try() should not succeed');
         });
-      });
+      }).catch(() => {});
 
-      let waitTicks = 3;
+      let waitTicks = 30;
 
       return Promise.resolve()
         .then(waitForCondition(function () {
-          return tryStub.callCount === 1 && retryStub.callCount === 1;
+          return tryStub.callCount === 1 && retryStub.callCount === 1 ? retryInstance.end() : false;
         }))
-        .then(function () {
-          return retryInstance.end();
-        })
         .then(waitForCondition(function () {
           return --waitTicks === 0;
         }))
