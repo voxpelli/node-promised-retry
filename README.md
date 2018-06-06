@@ -4,7 +4,9 @@ A generic promised based retry mechanism. Useful for eg. ensuring an available d
 
 [![Build Status](https://travis-ci.org/voxpelli/node-promised-retry.svg?branch=master)](https://travis-ci.org/voxpelli/node-promised-retry)
 [![Coverage Status](https://coveralls.io/repos/voxpelli/node-promised-retry/badge.svg)](https://coveralls.io/r/voxpelli/node-promised-retry)
-[![Dependency Status](https://gemnasium.com/voxpelli/node-promised-retry.svg)](https://gemnasium.com/voxpelli/node-promised-retry)
+[![dependencies Status](https://david-dm.org/voxpelli/node-promised-retry/status.svg)](https://david-dm.org/voxpelli/node-promised-retry)
+[![Known Vulnerabilities](https://snyk.io/test/github/voxpelli/node-promised-retry/badge.svg?targetFile=package.json)](https://snyk.io/test/github/voxpelli/node-promised-retry?targetFile=package.json)
+[![js-semistandard-style](https://img.shields.io/badge/code%20style-semistandard-brightgreen.svg?style=flat)](https://github.com/Flet/semistandard)
 
 ## Installation
 
