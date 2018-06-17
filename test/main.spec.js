@@ -2,7 +2,6 @@
 
 const chai = require('chai');
 const sinon = require('sinon');
-require('sinon-as-promised');
 const sinonChai = require('sinon-chai');
 
 const should = chai.should();
@@ -11,7 +10,7 @@ chai.use(sinonChai);
 describe('Retry', function () {
   const Retry = require('../');
 
-  let clock, sandbox;
+  let clock;
 
   const repeatUntilCondition = function (condition, count) {
     return new Promise(function (resolve, reject) {
@@ -37,23 +36,19 @@ describe('Retry', function () {
     };
   };
 
-  beforeEach(function () {
-    sandbox = sinon.sandbox.create();
-  });
-
   afterEach(function () {
     clock = undefined;
-    sandbox.restore();
+    sinon.restore();
   });
 
   describe('main', function () {
     let tryStub, successSpy, endSpy, retryStub, retryInstance;
 
     beforeEach(function () {
-      tryStub = sandbox.stub();
-      successSpy = sandbox.spy();
-      endSpy = sandbox.spy();
-      retryStub = sandbox.stub().returns(1);
+      tryStub = sinon.stub();
+      successSpy = sinon.spy();
+      endSpy = sinon.spy();
+      retryStub = sinon.stub().returns(1);
 
       retryInstance = new Retry({
         try: tryStub,
@@ -79,7 +74,7 @@ describe('Retry', function () {
     });
 
     it('should do a proper retry', function () {
-      clock = sandbox.useFakeTimers(Date.now());
+      clock = sinon.useFakeTimers(Date.now());
 
       tryStub.onFirstCall().rejects(new Error('foo'));
       tryStub.onSecondCall().rejects(new Error('bar'));
@@ -107,7 +102,7 @@ describe('Retry', function () {
     });
 
     it('should work with default retry', function () {
-      clock = sandbox.useFakeTimers(Date.now());
+      clock = sinon.useFakeTimers(Date.now());
 
       retryInstance = new Retry({
         try: tryStub,
@@ -217,7 +212,7 @@ describe('Retry', function () {
     });
 
     it('should abort retries on end call during retries', function () {
-      clock = sandbox.useFakeTimers(Date.now());
+      clock = sinon.useFakeTimers(Date.now());
 
       tryStub.rejects(new Error('foo'));
 
