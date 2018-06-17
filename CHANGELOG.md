@@ -1,30 +1,32 @@
-### 0.2.3 (2015-08-20)
+# Changelog
+
+## 0.2.3 (2015-08-20)
 
 
-#### Bug Fixes
+### Bug Fixes
 
 * **main:** stopped retrying doesn't mean ending ([7c78b25d](http://github.com/voxpelli/node-promised-retry/commit/7c78b25d5f84dde2e1dfe8e434430d92fd10152e))
 
 
-#### Features
+### Features
 
 * **main:**
   * allow retries to be limited ([11c5c607](http://github.com/voxpelli/node-promised-retry/commit/11c5c607b5a1c35fd17334b79e122e586b5d03fa))
   * allow retries to be limited ([7bb985c0](http://github.com/voxpelli/node-promised-retry/commit/7bb985c013caceef40216dd809caa225a7900506))
 
 
-### 0.2.2 (2015-08-05)
+## 0.2.2 (2015-08-05)
 
 
-#### Bug Fixes
+### Bug Fixes
 
 * **main:** default retry delay wasn't working ([4f66c045](http://github.com/voxpelli/node-promised-retry/commit/4f66c04568ad1ad73cdfd3630337990a8619e97d))
 
 
-### 0.2.1 (2015-08-05)
+## 0.2.1 (2015-08-05)
 
 
-#### Bug Fixes
+### Bug Fixes
 
 * **main:**
   * if not started, when ending, do nothing ([8be97b23](http://github.com/voxpelli/node-promised-retry/commit/8be97b2373d356a9c2d82638be4f470f4daa432a))
@@ -34,7 +36,7 @@
 ## 0.2.0 (2015-08-04)
 
 
-#### Bug Fixes
+### Bug Fixes
 
 * **dependencies:**
   * no longer polyfilling Promises ([32349434](http://github.com/voxpelli/node-promised-retry/commit/32349434a01afda660c386e9e5301e4a135d80c1))
@@ -44,7 +46,7 @@
   * documented needed options methods ([02fb5401](http://github.com/voxpelli/node-promised-retry/commit/02fb5401ec6a4998a1b0899b79bb97b9bb5a472f))
 
 
-#### Breaking Changes
+### Breaking Changes
 
 * Now requiring iojs or at least node 0.12
  ([32349434](http://github.com/voxpelli/node-promised-retry/commit/32349434a01afda660c386e9e5301e4a135d80c1))
