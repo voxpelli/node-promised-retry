@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.0 (YYYY-MM-DD)
+
+* **Breaking change:** Now requires at leats Node.js 6.x
+
 ## 0.2.3 (2015-08-20)
 
 
