@@ -70,7 +70,11 @@ Retry.prototype._try = function () {
       throw new Error('Retry limit reached');
     }
 
-    return this._try();
+    return new Promise(resolve => {
+      process.nextTick(() => {
+        resolve(this._try());
+      });
+    });
   });
 };
 

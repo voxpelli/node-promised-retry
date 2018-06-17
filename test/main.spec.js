@@ -10,6 +10,8 @@ chai.use(sinonChai);
 describe('Retry', function () {
   const Retry = require('../');
 
+  const resolved = Promise.resolve();
+
   let clock;
 
   const repeatUntilCondition = function (condition, count) {
@@ -21,7 +23,7 @@ describe('Retry', function () {
           resolve(condition() || repeatUntilCondition(condition, count ? count + 1 : 1));
         };
         if (clock) {
-          setImmediate(callback);
+          resolved.then(callback);
           clock.tick(1000);
         } else {
           callback();
