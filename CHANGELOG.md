@@ -4,6 +4,7 @@
 
 * **Breaking change:** Now targets at least Node.js 8.x
 * **Breaking change:** No longer supports a callback on `try()`
+* **Breaking change:** No longer throws `AssertionError` on invalid configuration when created
 
 ## 0.2.3 (2015-08-20)
 

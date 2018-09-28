@@ -1,7 +1,5 @@
 'use strict';
 
-const assert = require('assert');
-
 const noop = () => {};
 
 const Retry = function (options) {
@@ -25,7 +23,9 @@ const Retry = function (options) {
     log: console.log.bind(console)
   }, options);
 
-  assert(resolvedOptions.try && resolvedOptions.success && resolvedOptions.end, 'Promised-retry needs to be provided a "try", "success" and "end" function');
+  if (!resolvedOptions.try || !resolvedOptions.success || !resolvedOptions.end) {
+    throw new Error('Promised-retry needs to be provided a "try", "success" and "end" function');
+  }
 
   this.options = resolvedOptions;
   this.log = resolvedOptions.log;
