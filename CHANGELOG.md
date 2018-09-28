@@ -2,7 +2,8 @@
 
 ## 0.3.0 (YYYY-MM-DD)
 
-* **Breaking change:** Now requires at leats Node.js 6.x
+* **Breaking change:** Now targets at least Node.js 8.x
+* **Breaking change:** No longer supports a callback on `try()`
 
 ## 0.2.3 (2015-08-20)
 

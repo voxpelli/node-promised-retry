@@ -4,7 +4,7 @@ const chai = require('chai');
 const sinon = require('sinon');
 const sinonChai = require('sinon-chai');
 
-const should = chai.should();
+chai.should();
 chai.use(sinonChai);
 
 describe('Retry', function () {
@@ -172,29 +172,6 @@ describe('Retry', function () {
         retryStub.should.not.have.been.called;
 
         return retryInstance.try();
-      });
-    });
-
-    it('should accept a regular node.js-style callback on the try() method', function (done) {
-      tryStub.resolves('abc123');
-
-      retryInstance.try(function (err, result) {
-        try {
-          should.not.exist(err);
-          should.exist(result);
-
-          result.should.equal('abc123');
-
-          tryStub.should.have.been.calledOnce;
-          successSpy.should.have.been.calledOnce;
-          successSpy.should.have.been.calledWith('abc123');
-          endSpy.should.not.have.been.called;
-          retryStub.should.not.have.been.called;
-
-          done();
-        } catch (e) {
-          done(e);
-        }
       });
     });
 

@@ -78,12 +78,7 @@ Retry.prototype._try = function () {
   });
 };
 
-Retry.prototype.try = function (createNew, callback) {
-  if (typeof createNew === 'function') {
-    callback = createNew;
-    createNew = undefined;
-  }
-
+Retry.prototype.try = function (createNew) {
   if (this.promisedResult) {
     return this.promisedResult;
   } else if (createNew === false || this.stopped) {
@@ -99,11 +94,7 @@ Retry.prototype.try = function (createNew, callback) {
       return this.options.success(result) || result;
     });
 
-  if (!callback) { return this.promisedResult; }
-
-  this.promisedResult
-    .then(result => { callback(undefined, result); })
-    .catch(callback);
+  return this.promisedResult;
 };
 
 Retry.prototype.end = function () {
