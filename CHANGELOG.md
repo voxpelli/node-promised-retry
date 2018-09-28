@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.3.0 (YYYY-MM-DD)
+## 0.3.0 (2018-09-28)
 
 * **Breaking change:** Now targets at least Node.js 8.x
 * **Breaking change:** No longer supports a callback on `try()`
