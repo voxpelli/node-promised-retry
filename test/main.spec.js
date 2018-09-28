@@ -7,7 +7,7 @@ const sinonChai = require('sinon-chai');
 const should = chai.should();
 chai.use(sinonChai);
 
-describe('Retry', function () {
+describe('Retry', () => {
   const Retry = require('../');
 
   const resolved = Promise.resolve();
@@ -15,11 +15,11 @@ describe('Retry', function () {
   let clock;
 
   const repeatUntilCondition = function (condition, count) {
-    return new Promise(function (resolve, reject) {
+    return new Promise((resolve, reject) => {
       if (count > 100) { return reject(new Error('repeatUntilCondition repeated for too long')); }
 
-      process.nextTick(function () {
-        const callback = function () {
+      process.nextTick(() => {
+        const callback = () => {
           resolve(condition() || repeatUntilCondition(condition, count ? count + 1 : 1));
         };
         if (clock) {
@@ -33,20 +33,18 @@ describe('Retry', function () {
   };
 
   const waitForCondition = function (condition) {
-    return function () {
-      return repeatUntilCondition(condition);
-    };
+    return () => repeatUntilCondition(condition);
   };
 
-  afterEach(function () {
+  afterEach(() => {
     clock = undefined;
     sinon.restore();
   });
 
-  describe('main', function () {
+  describe('main', () => {
     let tryStub, successSpy, endSpy, retryStub, retryInstance;
 
-    beforeEach(function () {
+    beforeEach(() => {
       tryStub = sinon.stub();
       successSpy = sinon.spy();
       endSpy = sinon.spy();
@@ -57,7 +55,7 @@ describe('Retry', function () {
         success: successSpy,
         end: endSpy,
         retryDelay: retryStub,
-        log: function () {}
+        log: () => {}
       });
     });
 
@@ -67,10 +65,10 @@ describe('Retry', function () {
       should.Throw(() => new Retry({ try: () => {}, success: () => {} }), /Promised Retry needs to be provided a "try", "success" and "end" function/);
     });
 
-    it('should call success on successful try', function () {
+    it('should call success on successful try', () => {
       tryStub.resolves('abc123');
 
-      return retryInstance.try().then(function (result) {
+      return retryInstance.try().then(result => {
         result.should.equal('abc123');
 
         tryStub.should.have.been.calledOnce;
@@ -81,7 +79,7 @@ describe('Retry', function () {
       });
     });
 
-    it('should do a proper retry', function () {
+    it('should do a proper retry', () => {
       clock = sinon.useFakeTimers(Date.now());
 
       tryStub.onFirstCall().rejects(new Error('foo'));
@@ -90,14 +88,14 @@ describe('Retry', function () {
 
       let fulfilled = false;
 
-      const result = retryInstance.try().then(function () {
+      const result = retryInstance.try().then(() => {
         fulfilled = true;
 
         tryStub.should.have.been.calledThrice;
         successSpy.should.have.been.calledOnce;
         successSpy.should.have.been.calledWith('abc123');
         endSpy.should.not.have.been.calledOnce;
-      }).catch(function (err) {
+      }).catch(err => {
         fulfilled = true;
         throw err;
       });
@@ -109,14 +107,14 @@ describe('Retry', function () {
         .then(() => result);
     });
 
-    it('should work with default retry', function () {
+    it('should work with default retry', () => {
       clock = sinon.useFakeTimers(Date.now());
 
       retryInstance = new Retry({
         try: tryStub,
         success: successSpy,
         end: endSpy,
-        log: function () {}
+        log: () => {}
       });
 
       tryStub.onFirstCall().rejects(new Error('foo'));
@@ -125,40 +123,32 @@ describe('Retry', function () {
 
       let fulfilled = false;
 
-      const result = retryInstance.try().then(function () {
+      const result = retryInstance.try().then(() => {
         fulfilled = true;
 
         tryStub.should.have.been.calledThrice;
         successSpy.should.have.been.calledOnce;
         successSpy.should.have.been.calledWith('abc123');
         endSpy.should.not.have.been.calledOnce;
-      }).catch(function (err) {
+      }).catch(err => {
         fulfilled = true;
         throw err;
       });
 
       return Promise.resolve()
-        .then(waitForCondition(function () {
-          return tryStub.callCount === 1;
-        }))
-        .then(waitForCondition(function () {
-          return tryStub.callCount === 2;
-        }))
-        .then(waitForCondition(function () {
-          return fulfilled === true;
-        }))
-        .then(function () {
-          return result;
-        });
+        .then(waitForCondition(() => tryStub.callCount === 1))
+        .then(waitForCondition(() => tryStub.callCount === 2))
+        .then(waitForCondition(() => fulfilled === true))
+        .then(() => result);
     });
 
-    it('should only attempt once, despite multiple calls', function () {
+    it('should only attempt once, despite multiple calls', () => {
       tryStub.resolves('abc123');
 
       retryInstance.try();
       retryInstance.try();
 
-      return retryInstance.try().then(function (result) {
+      return retryInstance.try().then(result => {
         result.should.equal('abc123');
 
         tryStub.should.have.been.calledOnce;
@@ -168,7 +158,7 @@ describe('Retry', function () {
         retryStub.should.not.have.been.called;
 
         return retryInstance.try();
-      }).then(function (result) {
+      }).then(result => {
         result.should.equal('abc123');
 
         tryStub.should.have.been.calledOnce;
@@ -181,12 +171,12 @@ describe('Retry', function () {
       });
     });
 
-    it('should call end with successful result on end after success', function () {
+    it('should call end with successful result on end after success', () => {
       tryStub.resolves('abc123');
 
       return retryInstance.try()
         .then(() => retryInstance.end())
-        .then(function () {
+        .then(() => {
           tryStub.should.have.been.calledOnce;
           successSpy.should.have.been.calledOnce;
           successSpy.should.have.been.calledWith('abc123');
@@ -196,13 +186,13 @@ describe('Retry', function () {
         });
     });
 
-    it('should abort retries on end call during retries', function () {
+    it('should abort retries on end call during retries', () => {
       clock = sinon.useFakeTimers(Date.now());
 
       tryStub.rejects(new Error('foo'));
 
-      retryInstance.try().then(function () {
-        process.nextTick(function () {
+      retryInstance.try().then(() => {
+        process.nextTick(() => {
           throw new Error('try() should not succeed');
         });
       }).catch(() => {});
@@ -212,7 +202,7 @@ describe('Retry', function () {
       return Promise.resolve()
         .then(waitForCondition(() => tryStub.callCount === 1 && retryStub.callCount === 1 ? retryInstance.end() : false))
         .then(waitForCondition(() => --waitTicks === 0))
-        .then(function () {
+        .then(() => {
           tryStub.should.have.been.called;
           retryStub.should.have.been.calledOnce;
           successSpy.should.not.have.been.called;
@@ -221,7 +211,7 @@ describe('Retry', function () {
         });
     });
 
-    it('should not make any attempts if ended before the first one', function () {
+    it('should not make any attempts if ended before the first one', () => {
       clock = sinon.useFakeTimers(Date.now());
 
       tryStub.rejects(new Error('foo'));
@@ -230,7 +220,7 @@ describe('Retry', function () {
 
       return retryInstance.end()
         .then(waitForCondition(() => --waitTicks === 0))
-        .then(function () {
+        .then(() => {
           tryStub.should.not.have.been.called;
           retryStub.should.not.have.been.called;
           successSpy.should.not.have.been.called;
@@ -239,14 +229,14 @@ describe('Retry', function () {
         });
     });
 
-    it('should ignore any attempts if ended', function () {
+    it('should ignore any attempts if ended', () => {
       tryStub.resolves('abc123');
 
       return retryInstance.end()
         .then(() => retryInstance.try())
         .then(
           () => Promise.reject(new Error('try() should not resolve after an ending')),
-          function () {
+          () => {
             tryStub.should.not.have.been.called;
             retryStub.should.not.have.been.called;
             successSpy.should.not.have.been.called;
@@ -256,7 +246,7 @@ describe('Retry', function () {
         );
     });
 
-    it('should abort when retry function says so', function () {
+    it('should abort when retry function says so', () => {
       clock = sinon.useFakeTimers(Date.now());
 
       tryStub.rejects(new Error('foo'));
@@ -265,17 +255,17 @@ describe('Retry', function () {
 
       let fulfilled = false;
 
-      const result = retryInstance.try().then(function () {
+      const result = retryInstance.try().then(() => {
         fulfilled = true;
         throw new Error('try() should not succeed');
-      }, function () {
+      }, () => {
         fulfilled = true;
       });
 
       return Promise.resolve()
         .then(waitForCondition(() => tryStub.callCount === 1 && retryStub.callCount === 1))
         .then(waitForCondition(() => fulfilled === true))
-        .then(function () {
+        .then(() => {
           tryStub.should.have.been.calledTwice;
           retryStub.should.have.been.calledTwice;
 
@@ -283,11 +273,11 @@ describe('Retry', function () {
         });
     });
 
-    it('should make a new attempt if attempt is requested after a reset', function () {
+    it('should make a new attempt if attempt is requested after a reset', () => {
       tryStub.onFirstCall().resolves('abc123');
       tryStub.resolves('xyz789');
 
-      return retryInstance.try().then(function (result) {
+      return retryInstance.try().then(result => {
         result.should.equal('abc123');
 
         tryStub.should.have.been.calledOnce;
@@ -299,7 +289,7 @@ describe('Retry', function () {
         retryInstance.reset();
 
         return retryInstance.try();
-      }).then(function (result) {
+      }).then(result => {
         result.should.equal('xyz789');
 
         tryStub.should.have.been.calledTwice;
@@ -310,7 +300,7 @@ describe('Retry', function () {
       });
     });
 
-    it('should abort retries after limit is reached', function () {
+    it('should abort retries after limit is reached', () => {
       clock = sinon.useFakeTimers(Date.now());
 
       tryStub.rejects(new Error('foo'));
@@ -320,13 +310,13 @@ describe('Retry', function () {
         success: successSpy,
         end: endSpy,
         retryDelay: retryStub,
-        log: function () {},
+        log: () => {},
         retryLimit: 1
       });
 
       let fulfilled = false;
 
-      const result = retryInstance.try().catch(function (err) {
+      const result = retryInstance.try().catch(err => {
         fulfilled = true;
 
         err.should.be.an('Error');
