@@ -4,7 +4,7 @@ const chai = require('chai');
 const sinon = require('sinon');
 const sinonChai = require('sinon-chai');
 
-chai.should();
+const should = chai.should();
 chai.use(sinonChai);
 
 describe('Retry', function () {
@@ -59,6 +59,12 @@ describe('Retry', function () {
         retryDelay: retryStub,
         log: function () {}
       });
+    });
+
+    it('should fail if missing a required option', () => {
+      should.Throw(() => new Retry({}), /Promised Retry needs to be provided a "try", "success" and "end" function/);
+      should.Throw(() => new Retry({ try: () => {} }), /Promised Retry needs to be provided a "try", "success" and "end" function/);
+      should.Throw(() => new Retry({ try: () => {}, success: () => {} }), /Promised Retry needs to be provided a "try", "success" and "end" function/);
     });
 
     it('should call success on successful try', function () {
