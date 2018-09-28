@@ -57,7 +57,7 @@ var retryInstance = new Retry({
 
 ## Options
 
-* **try** - the function that will make up the attempt. Should return a Promise that's fulfilled or rejected depending on ehwther the attempt is a success or failure.
+* **try** - the function that will make up the attempt. Should return a Promise that's fulfilled or rejected depending on whether the attempt is a success or failure.
 * **success** - a function that's run on an successful attempt. Will be sent the result of the attempt and can return a modified result or a Promise.
 * **end** - a function that will be run on the closing of the retry script. Useful for when needing to fix a graceful shutdown of eg. a database. Can return a Promise if it needs to do something that the shutdown needs to wait for.
 * **name** – the name of the Retry attempt. Used in eg debugging.
