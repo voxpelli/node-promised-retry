@@ -1,22 +1,30 @@
 {
   "files": [
-    "index.js"
+    "index.js",
+  ],
+  "include": [
+    "test/**/*.js",
   ],
   "compilerOptions": {
     /* Basic Options */
-    "target": "ES2016",
+    "target": "ES2017",
+    "lib": ["es2019.array"],
     "module": "commonjs",
     "allowJs": true,
+    "checkJs": true,
     "resolveJsonModule": true,
     "noEmit": true,
-    "maxNodeModuleJsDepth": 2,
+    "esModuleInterop": true,
 
     /* Strict Type-Checking Options */
     "strict": true,
-    "noImplicitAny": false,
-    "strictNullChecks": false,
+    "noImplicitThis": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
 
     /* Additional Checks */
-    "noUnusedLocals": true
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true
   }
 }

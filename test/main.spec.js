@@ -12,11 +12,18 @@ const Retry = require('..');
 const resolved = Promise.resolve();
 
 describe('Retry', () => {
+  /** @type {import('sinon').SinonFakeTimers|undefined} */
   let clock;
 
+  /**
+   * @template T
+   * @param {() => T} condition
+   * @param {number} [count]
+   * @returns {Promise<T>}
+   */
   const repeatUntilCondition = function (condition, count) {
     return new Promise((resolve, reject) => {
-      if (count > 100) { return reject(new Error('repeatUntilCondition repeated for too long')); }
+      if (count && count > 100) { return reject(new Error('repeatUntilCondition repeated for too long')); }
 
       process.nextTick(() => {
         const callback = () => {
@@ -33,6 +40,11 @@ describe('Retry', () => {
     });
   };
 
+  /**
+   * @template T
+   * @param {() => T} condition
+   * @returns {() => Promise<T>}
+   */
   const waitForCondition = function (condition) {
     return () => repeatUntilCondition(condition);
   };
@@ -43,7 +55,16 @@ describe('Retry', () => {
   });
 
   describe('main', () => {
-    let tryStub, successSpy, endSpy, retryStub, retryInstance;
+    /** @type {import('sinon').SinonStub} */
+    let tryStub;
+    /** @type {import('sinon').SinonSpy} */
+    let successSpy;
+    /** @type {import('sinon').SinonSpy} */
+    let endSpy;
+    /** @type {import('sinon').SinonStub} */
+    let retryStub;
+    /** @type {import('..')} */
+    let retryInstance;
 
     beforeEach(() => {
       tryStub = sinon.stub();
@@ -61,8 +82,11 @@ describe('Retry', () => {
     });
 
     it('should fail if missing a required option', () => {
+      // @ts-ignore
       should.Throw(() => new Retry({}), /Promised Retry needs to be provided a "try", "success" and "end" function/);
+      // @ts-ignore
       should.Throw(() => new Retry({ 'try': () => {} }), /Promised Retry needs to be provided a "try", "success" and "end" function/);
+      // @ts-ignore
       should.Throw(() => new Retry({ 'try': () => {}, success: () => {} }), /Promised Retry needs to be provided a "try", "success" and "end" function/);
     });
 

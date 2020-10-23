@@ -22,7 +22,7 @@ class RetryError extends Error {
 }
 
 /**
- * @typedef {object} RetryOptions
+ * @typedef RetryOptions
  * @property {string} [name="unknown"]
  * @property {function(): void|Promise<void>} [setup]
  * @property {function(): Promise<any>} try
@@ -41,19 +41,12 @@ class Retry {
    * @param {RetryOptions} options
    */
   constructor (options) {
-    /**
-     * @type {RetryOptions}
-     */
-    const resolvedOptions = Object.assign({
+    /** @type {Required<Pick<RetryOptions, 'name'|'retryDelay'|'log'|'retryMin'|'retryBase'|'retryExponent'>>} */
+    const defaultOptions = {
       name: 'unknown',
-      setup: () => Promise.resolve(),
-      'try': undefined,
-      success: undefined,
-      end: undefined,
       retryMin: 0,
       retryBase: 1.2,
       retryExponent: 33,
-      retryLimit: undefined,
       retryDelay: retries => {
         return resolvedOptions.retryMin + Math.floor(
           1000 *
@@ -62,8 +55,13 @@ class Retry {
         );
       },
       // eslint-disable-next-line no-console
-      log: console.log.bind(console)
-    }, options);
+      log: console.log.bind(console),
+    };
+
+    const resolvedOptions = {
+      ...defaultOptions,
+      ...options,
+    };
 
     if (!resolvedOptions.try || !resolvedOptions.success || !resolvedOptions.end) {
       throw new Error('Promised Retry needs to be provided a "try", "success" and "end" function');
@@ -121,21 +119,30 @@ class Retry {
     });
   }
 
-  try (createNew) {
+  async _createTryPromise () {
+    if (this.options.setup) await this.options.setup();
+
+    const result = await this._try();
+
+    this.log(`Successful retry attempt for ${this.options.name}`);
+    this.failures = 0;
+
+    return this.options.success(result) || result;
+  }
+
+  // TODO: Improve return type!
+  /**
+   * @param {boolean} [createNew]
+   * @returns {Promise<*>}
+   */
+  async try (createNew = true) {
     if (this.promisedResult) {
       return this.promisedResult;
     } else if (createNew === false || this.stopped) {
-      return Promise.reject(new Error('No available instance'));
+      throw new Error('No available instance');
     }
 
-    this.promisedResult = Promise.resolve()
-      .then(() => this.options.setup())
-      .then(() => this._try())
-      .then(result => {
-        this.log(`Successful retry attempt for ${this.options.name}`);
-        this.failures = 0;
-        return this.options.success(result) || result;
-      });
+    this.promisedResult = this._createTryPromise();
 
     return this.promisedResult;
   }
