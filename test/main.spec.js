@@ -7,11 +7,11 @@ const sinonChai = require('sinon-chai');
 const should = chai.should();
 chai.use(sinonChai);
 
+const Retry = require('..');
+
+const resolved = Promise.resolve();
+
 describe('Retry', () => {
-  const Retry = require('../');
-
-  const resolved = Promise.resolve();
-
   let clock;
 
   const repeatUntilCondition = function (condition, count) {
@@ -23,6 +23,7 @@ describe('Retry', () => {
           resolve(condition() || repeatUntilCondition(condition, count ? count + 1 : 1));
         };
         if (clock) {
+          // eslint-disable-next-line promise/catch-or-return
           resolved.then(callback);
           clock.tick(1000);
         } else {
@@ -51,7 +52,7 @@ describe('Retry', () => {
       retryStub = sinon.stub().returns(1);
 
       retryInstance = new Retry({
-        try: tryStub,
+        'try': tryStub,
         success: successSpy,
         end: endSpy,
         retryDelay: retryStub,
@@ -61,8 +62,8 @@ describe('Retry', () => {
 
     it('should fail if missing a required option', () => {
       should.Throw(() => new Retry({}), /Promised Retry needs to be provided a "try", "success" and "end" function/);
-      should.Throw(() => new Retry({ try: () => {} }), /Promised Retry needs to be provided a "try", "success" and "end" function/);
-      should.Throw(() => new Retry({ try: () => {}, success: () => {} }), /Promised Retry needs to be provided a "try", "success" and "end" function/);
+      should.Throw(() => new Retry({ 'try': () => {} }), /Promised Retry needs to be provided a "try", "success" and "end" function/);
+      should.Throw(() => new Retry({ 'try': () => {}, success: () => {} }), /Promised Retry needs to be provided a "try", "success" and "end" function/);
     });
 
     it('should call success on successful try', () => {
@@ -111,7 +112,7 @@ describe('Retry', () => {
       clock = sinon.useFakeTimers(Date.now());
 
       retryInstance = new Retry({
-        try: tryStub,
+        'try': tryStub,
         success: successSpy,
         end: endSpy,
         log: () => {}
@@ -207,7 +208,7 @@ describe('Retry', () => {
           retryStub.should.have.been.calledOnce;
           successSpy.should.not.have.been.called;
           endSpy.should.have.been.calledOnce;
-          endSpy.should.have.been.calledWith(undefined);
+          endSpy.should.have.been.calledWith();
         });
     });
 
@@ -225,7 +226,7 @@ describe('Retry', () => {
           retryStub.should.not.have.been.called;
           successSpy.should.not.have.been.called;
           endSpy.should.have.been.calledOnce;
-          endSpy.should.have.been.calledWith(undefined);
+          endSpy.should.have.been.calledWith();
         });
     });
 
@@ -241,7 +242,7 @@ describe('Retry', () => {
             retryStub.should.not.have.been.called;
             successSpy.should.not.have.been.called;
             endSpy.should.have.been.calledOnce;
-            endSpy.should.have.been.calledWith(undefined);
+            endSpy.should.have.been.calledWith();
           }
         );
     });
@@ -306,7 +307,7 @@ describe('Retry', () => {
       tryStub.rejects(new Error('foo'));
 
       retryInstance = new Retry({
-        try: tryStub,
+        'try': tryStub,
         success: successSpy,
         end: endSpy,
         retryDelay: retryStub,

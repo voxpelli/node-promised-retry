@@ -47,7 +47,7 @@ class Retry {
     const resolvedOptions = Object.assign({
       name: 'unknown',
       setup: () => Promise.resolve(),
-      try: undefined,
+      'try': undefined,
       success: undefined,
       end: undefined,
       retryMin: 0,
@@ -61,6 +61,7 @@ class Retry {
           Math.random()
         );
       },
+      // eslint-disable-next-line no-console
       log: console.log.bind(console)
     }, options);
 
@@ -72,13 +73,17 @@ class Retry {
     this.log = resolvedOptions.log;
     this.failures = 0;
   }
+
   _try () {
     return new Promise((resolve, reject) => {
       const next = () => {
         this.retrying = undefined;
         this.abort = undefined;
-        if (this.stopped) { return reject(new Error(this.options.name + ' has been stopped')); }
-        this.options.try().then(resolve, reject);
+        if (this.stopped) {
+          reject(new Error(this.options.name + ' has been stopped'));
+        } else {
+          resolve(this.options.try());
+        }
       };
 
       if (this.failures) {
