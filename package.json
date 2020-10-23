@@ -42,7 +42,6 @@
     "@voxpelli/eslint-config-jsdoc-ts": "^0.3.1",
     "c8": "^7.3.4",
     "chai": "4.2.0",
-    "coveralls": "^3.1.0",
     "cross-env": "^7.0.2",
     "dependency-check": "^4.1.0",
     "eslint": "^7.11.0",
