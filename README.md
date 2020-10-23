@@ -12,7 +12,7 @@ A generic promised based retry mechanism. Useful for eg. ensuring an available d
 ## Installation
 
 ```bash
-npm install promised-retry --save
+yarn add promised-retry
 ```
 
 ## Usage
@@ -20,41 +20,36 @@ npm install promised-retry --save
 Simple:
 
 ```javascript
-var retryInstance = new Retry({
-  try: function () {
-    var db = new pg.Client(require('../config').db);
-    db.on('error', function () {
+const Retry = require('promised-retry')
+const { Client } = require('pg')
+
+const retryInstance = new Retry({
+  try: async () => {
+    const db = new Client(require('../config').db);
+
+    db.on('error', () => {
       retryInstance.reset();
       if (channels.length) {
         retryInstance.try();
       }
     });
-    return new Promise(function (resolve, reject) {
-      db.connect(function (err) {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(db);
-        }
-      });
-    });
+
+    await db.connect();
   },
-  success: function (db) {
+  success: db => {
     db.on('notification', self.processNotification.bind(self));
 
-    channels.forEach(function (channel) {
+    channels.forEach(channel => {
       db.query('LISTEN ' + channel);
     });
   },
-  end: function (db) {
-    db.end();
-  },
+  end: db => { db.end(); }
 });
 ```
 
 ## Syntax
 
-`var retryInstance = new Retry(options);`
+`const retryInstance = new Retry(options);`
 
 ## Options
 
