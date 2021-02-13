@@ -1,3 +1,6 @@
+/* eslint-env mocha */
+/* eslint-disable node/no-unpublished-require, no-unused-expressions, promise/always-return, promise/prefer-await-to-then */
+
 'use strict';
 
 const chai = require('chai');
@@ -25,12 +28,12 @@ describe('Retry', () => {
     return new Promise((resolve, reject) => {
       if (count && count > 100) { return reject(new Error('repeatUntilCondition repeated for too long')); }
 
+      const callback = () => {
+        resolve(condition() || repeatUntilCondition(condition, count ? count + 1 : 1));
+      };
       process.nextTick(() => {
-        const callback = () => {
-          resolve(condition() || repeatUntilCondition(condition, count ? count + 1 : 1));
-        };
         if (clock) {
-          // eslint-disable-next-line promise/catch-or-return
+          // eslint-disable-next-line promise/catch-or-return, promise/no-callback-in-promise
           resolved.then(callback);
           clock.tick(1000);
         } else {
@@ -90,18 +93,18 @@ describe('Retry', () => {
       should.Throw(() => new Retry({ 'try': () => {}, success: () => {} }), /Promised Retry needs to be provided a "try", "success" and "end" function/);
     });
 
-    it('should call success on successful try', () => {
+    it('should call success on successful try', async () => {
       tryStub.resolves('abc123');
 
-      return retryInstance.try().then(result => {
-        result.should.equal('abc123');
+      const result = await retryInstance.try();
 
-        tryStub.should.have.been.calledOnce;
-        successSpy.should.have.been.calledOnce;
-        successSpy.should.have.been.calledWith('abc123');
-        endSpy.should.not.have.been.called;
-        retryStub.should.not.have.been.called;
-      });
+      result.should.equal('abc123');
+
+      tryStub.should.have.been.calledOnce;
+      successSpy.should.have.been.calledOnce;
+      successSpy.should.have.been.calledWith('abc123');
+      endSpy.should.not.have.been.called;
+      retryStub.should.not.have.been.called;
     });
 
     it('should do a proper retry', () => {
@@ -260,7 +263,7 @@ describe('Retry', () => {
       return retryInstance.end()
         .then(() => retryInstance.try())
         .then(
-          () => Promise.reject(new Error('try() should not resolve after an ending')),
+          () => { throw new Error('try() should not resolve after an ending'); },
           () => {
             tryStub.should.not.have.been.called;
             retryStub.should.not.have.been.called;

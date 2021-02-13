@@ -150,6 +150,7 @@ class Retry {
   end () {
     this.stopped = true;
 
+    // eslint-disable-next-line promise/prefer-await-to-then
     const result = this.try(false).catch(noop).then(result => {
       this.promisedResult = undefined;
       return this.options.end(result);
