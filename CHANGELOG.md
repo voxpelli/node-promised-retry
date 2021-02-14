@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.4.0 (2021-02-14)
+
+* **Breaking change:** Now targets at least Node.js 12.x
+* **Major addition:** Now comes with TypeScript type definitions
+* **Minor internal:** Lots of things, mostly dev dependency updates, but also some refactorings
 ## 0.3.0 (2018-09-28)
 
 * **Breaking change:** Now targets at least Node.js 8.x
