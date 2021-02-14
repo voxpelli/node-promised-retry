@@ -45,6 +45,25 @@ const getDefaultRetryDelay = ({ retryMin, retryBase, retryExponent }) => {
 };
 
 /**
+ * @template T
+ * @returns {[Promise<T>, (value: T | PromiseLike<T>) => void, (err: Error) => void]}
+ */
+const resolveablePromise = () => {
+  /** @type {(value: T | PromiseLike<T>) => void} */
+  let resolver;
+  /** @type {(err: Error) => void} */
+  let rejecter;
+
+  const resolveable = new Promise((resolve, reject) => {
+    resolver = resolve;
+    rejecter = reject;
+  });
+
+  // @ts-ignore
+  return [resolveable, resolver, rejecter];
+};
+
+/**
  * @typedef RetryOptions
  * @property {string} [name="unknown"]
  * @property {function(): void|Promise<void>} [setup]
@@ -89,51 +108,77 @@ class Retry {
     this.failures = 0;
   }
 
-  _try () {
-    return new Promise((resolve, reject) => {
-      const next = () => {
-        this.retrying = undefined;
-        this.abort = undefined;
-        if (this.stopped) {
-          reject(new Error(this.options.name + ' has been stopped'));
-        } else {
-          resolve(this.options.try());
-        }
-      };
+  /**
+   * @param {any} err
+   * @returns {Promise<any>}
+   */
+  async _maybeRetry (err = new Error('Unknown error')) {
+    this.log(`Failed retry attempt for ${this.options.name}: ${err.stack}`);
 
-      if (this.failures) {
-        const delay = this.options.retryDelay(this.failures);
-        if (delay !== false) {
-          this.log(`Retry ${this.failures}: Waiting ${delay} ms to try ${this.options.name} again`);
-          this.retrying = setTimeout(next, delay);
-          this.abort = reject;
-        } else {
-          reject(new RetryError('Retries aborted after ' + this.failures + ' attempts', { aborted: true }));
-        }
-      } else {
-        process.nextTick(next);
-      }
-    }).catch(err => {
-      this.log(`Failed retry attempt for ${this.options.name}: ${err.stack}`);
+    // If we're stopped or aborted, then we should not give it a new attempt
+    if (this.stopped || err.aborted) {
+      throw err;
+    }
 
-      if (this.stopped || err.aborted) {
-        throw err;
-      }
+    this.failures += 1;
+    this.retrying = undefined;
+    this.abort = undefined;
 
-      this.failures += 1;
-      this.retrying = undefined;
-      this.abort = undefined;
+    // If we have reached a retry limit, then we should not give it a new attempt
+    if (this.options.retryLimit !== undefined && this.failures > this.options.retryLimit) {
+      throw new Error('Retry limit reached');
+    }
 
-      if (this.options.retryLimit !== undefined && this.failures > this.options.retryLimit) {
-        throw new Error('Retry limit reached');
-      }
-
-      return new Promise(resolve => {
-        process.nextTick(() => {
-          resolve(this._try());
-        });
+    // TODO: Why this instead of Promise.resolve().then(() => this._try()) ?
+    // Otherwise: Try again!
+    return new Promise(resolve => {
+      process.nextTick(() => {
+        resolve(this._try());
       });
     });
+  }
+
+  async _throttledAttempt () {
+    const [result, resolve, reject] = resolveablePromise();
+
+    // eslint-disable-next-line promise/prefer-await-to-then
+    const next = () => resolve(Promise.resolve().then(async () => {
+      this.retrying = undefined;
+      this.abort = undefined;
+      if (this.stopped) {
+        throw new Error(this.options.name + ' has been stopped');
+      }
+      return this.options.try();
+    }));
+
+    if (this.failures) {
+      const delay = this.options.retryDelay(this.failures);
+      if (delay !== false) {
+        this.log(`Retry ${this.failures}: Waiting ${delay} ms to try ${this.options.name} again`);
+        this.retrying = setTimeout(next, delay);
+        this.abort = reject;
+      } else {
+        throw new RetryError('Retries aborted after ' + this.failures + ' attempts', { aborted: true });
+      }
+    } else {
+      process.nextTick(next);
+    }
+
+    return result;
+  }
+
+  /** @returns {Promise<any>} */
+  async _try () {
+    try {
+      // We use await here to ensure that we can catch any errors and retry rather than forward errors
+      const resolvedValue = await this._throttledAttempt();
+
+      this.failures = 0;
+
+      return resolvedValue;
+    } catch (err) {
+      return this._maybeRetry(err);
+    }
   }
 
   async _createTryPromise () {
@@ -142,7 +187,6 @@ class Retry {
     const result = await this._try();
 
     this.log(`Successful retry attempt for ${this.options.name}`);
-    this.failures = 0;
 
     return this.options.success(result) || result;
   }
@@ -153,25 +197,18 @@ class Retry {
    * @returns {Promise<*>}
    */
   async try (createNew = true) {
-    if (this.promisedResult) {
-      return this.promisedResult;
-    } else if (createNew === false || this.stopped) {
-      throw new Error('No available instance');
+    if (!this.promisedResult) {
+      if (createNew === false || this.stopped) {
+        throw new Error('No available instance');
+      }
+      this.promisedResult = this._createTryPromise();
     }
-
-    this.promisedResult = this._createTryPromise();
 
     return this.promisedResult;
   }
 
-  end () {
+  async end () {
     this.stopped = true;
-
-    // eslint-disable-next-line promise/prefer-await-to-then
-    const result = this.try(false).catch(noop).then(result => {
-      this.promisedResult = undefined;
-      return this.options.end(result);
-    });
 
     if (this.retrying) {
       clearTimeout(this.retrying);
@@ -182,7 +219,11 @@ class Retry {
       }
     }
 
-    return result;
+    const result = await this.try(false).catch(noop);
+
+    this.promisedResult = undefined;
+
+    return this.options.end(result);
   }
 
   reset () {
