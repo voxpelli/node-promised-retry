@@ -78,6 +78,7 @@ const resolveablePromise = () => {
  * @property {function(string): void} [log]
  */
 
+// TODO: Convert into a type templated function instead, to be able to derive the resolved type
 class Retry {
   /** @param {RetryOptions} options */
   constructor (options) {
