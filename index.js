@@ -82,6 +82,7 @@ class Retry {
   /** @param {RetryOptions} options */
   constructor (options) {
     const {
+      log = getDefaultLog(),
       name = 'unknown',
       retryMin = 0,
       retryBase = 1.2,
@@ -103,12 +104,22 @@ class Retry {
       throw new Error('Promised Retry needs to be provided a "try", "success" and "end" function');
     }
 
+    /** @protected */
     this.options = resolvedOptions;
-    this.log = resolvedOptions.log || getDefaultLog();
+    /** @protected */
+    this.log = log;
+    /** @protected */
     this.failures = 0;
+    /** @protected */
+    this.retrying = undefined;
+    /** @protected */
+    this.abort = undefined;
+    /** @protected */
+    this.promisedResult = undefined;
   }
 
   /**
+   * @protected
    * @param {any} err
    * @returns {Promise<any>}
    */
@@ -138,6 +149,10 @@ class Retry {
     });
   }
 
+  /**
+   * @protected
+   * @returns {Promise<any>}
+   */
   async _throttledAttempt () {
     const [result, resolve, reject] = resolveablePromise();
 
@@ -167,7 +182,10 @@ class Retry {
     return result;
   }
 
-  /** @returns {Promise<any>} */
+  /**
+   * @protected
+   * @returns {Promise<any>}
+   */
   async _try () {
     try {
       // We use await here to ensure that we can catch any errors and retry rather than forward errors
@@ -181,6 +199,10 @@ class Retry {
     }
   }
 
+  /**
+   * @protected
+   * @returns {Promise<any>}
+   */
   async _createTryPromise () {
     if (this.options.setup) await this.options.setup();
 
