@@ -8,8 +8,7 @@ const noop = () => {};
 class RetryError extends Error {
   /**
    * @param {string} message
-   * @param {Object} options
-   * @param {boolean} [options.aborted]
+   * @param {{ aborted?: boolean }} [options]
    */
   constructor (message, { aborted } = {}) {
     super(message);
@@ -20,6 +19,30 @@ class RetryError extends Error {
     this.aborted = !!aborted;
   }
 }
+
+/** @returns {typeof console.log} */
+const getDefaultLog = () =>
+  // eslint-disable-next-line node/no-process-env
+  process.env.NODE_ENV === 'production'
+    ? () => {}
+    // eslint-disable-next-line no-console
+    : console.log.bind(console);
+
+/** @typedef {(failures: number) => number|false} RetryDelayCallback */
+
+/**
+ * @param {{ retryMin: number, retryBase: number, retryExponent: number }} options
+ * @returns {RetryDelayCallback}
+ */
+const getDefaultRetryDelay = ({ retryMin, retryBase, retryExponent }) => {
+  return (retries) => {
+    return retryMin + Math.floor(
+      1000 *
+      Math.pow(retryBase, Math.min(retryExponent, retries)) *
+      Math.random()
+    );
+  };
+};
 
 /**
  * @typedef RetryOptions
@@ -32,35 +55,29 @@ class RetryError extends Error {
  * @property {number} [retryBase=1.2]
  * @property {number} [retryExponent=33]
  * @property {number} [retryLimit]
- * @property {function(number): number|false} [retryDelay]
+ * @property {RetryDelayCallback} [retryDelay]
  * @property {function(string): void} [log]
  */
 
 class Retry {
-  /**
-   * @param {RetryOptions} options
-   */
+  /** @param {RetryOptions} options */
   constructor (options) {
-    /** @type {Required<Pick<RetryOptions, 'name'|'retryDelay'|'log'|'retryMin'|'retryBase'|'retryExponent'>>} */
-    const defaultOptions = {
-      name: 'unknown',
-      retryMin: 0,
-      retryBase: 1.2,
-      retryExponent: 33,
-      retryDelay: retries => {
-        return resolvedOptions.retryMin + Math.floor(
-          1000 *
-          Math.pow(resolvedOptions.retryBase, Math.min(resolvedOptions.retryExponent, retries)) *
-          Math.random()
-        );
-      },
-      // eslint-disable-next-line no-console
-      log: console.log.bind(console),
-    };
+    const {
+      name = 'unknown',
+      retryMin = 0,
+      retryBase = 1.2,
+      retryExponent = 33,
+      retryDelay,
+      ...optionalOptions
+    } = options;
 
     const resolvedOptions = {
-      ...defaultOptions,
-      ...options,
+      name,
+      retryMin,
+      retryBase,
+      retryExponent,
+      retryDelay: retryDelay || getDefaultRetryDelay({ retryMin, retryBase, retryExponent }),
+      ...optionalOptions,
     };
 
     if (!resolvedOptions.try || !resolvedOptions.success || !resolvedOptions.end) {
@@ -68,7 +85,7 @@ class Retry {
     }
 
     this.options = resolvedOptions;
-    this.log = resolvedOptions.log;
+    this.log = resolvedOptions.log || getDefaultLog();
     this.failures = 0;
   }
 
