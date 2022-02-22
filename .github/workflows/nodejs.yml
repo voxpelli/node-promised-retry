@@ -2,33 +2,53 @@ env: {}
 
 # FILE GENERATED WITH: npx ghat voxpelli/ghatemplates/nodejs-coveralls
 # SOURCE: https://github.com/voxpelli/ghatemplates
-# OPTIONS: {"set":["jobs.test.strategy.matrix.node_version=[12,14,15]"]}
+# OPTIONS: {"set":["jobs.test.strategy.matrix.node_version=[14,16,17]"]}
 
 name: Node CI
 on:
-  - push
-  - pull_request
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
 jobs:
   test:
     name: Node ${{ matrix.node_version }} on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         node_version:
-          - 12
           - 14
-          - 15
+          - 16
+          - 17
         os:
           - ubuntu-latest
           - windows-latest
     steps:
       - uses: actions/checkout@v2
       - name: Use Node.js ${{ matrix.node_version }}
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.node_version }}
-      - run: yarn install
-      - run: yarn run test-ci
+      - name: Get npm cache directory
+        id: npm-cache-dir
+        run: |
+          echo "::set-output name=dir::$(npm config get cache)"
+      - uses: actions/cache@v2
+        with:
+          path: ${{ steps.npm-cache-dir.outputs.dir }}
+          key: >-
+            ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json',
+            '**/package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+      - name: npm install/ci
+        run: >-
+          [ -f package-lock.json ] && npm ci --ignore-scripts || npm install
+          --ignore-scripts
+      - run: npm run test-ci
       - name: Coveralls Parallel
         uses: coverallsapp/github-action@v1.1.2
         with:
