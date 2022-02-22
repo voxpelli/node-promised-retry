@@ -23,7 +23,7 @@ class RetryError extends Error {
 /** @returns {typeof console.log} */
 const getDefaultLog = () =>
   // eslint-disable-next-line n/no-process-env
-  process.env.NODE_ENV === 'production'
+  process.env['NODE_ENV'] === 'production'
     ? () => {}
     // eslint-disable-next-line no-console
     : console.log.bind(console);
