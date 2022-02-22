@@ -1,5 +1,5 @@
 /* eslint-env mocha */
-/* eslint-disable node/no-unpublished-require, no-unused-expressions, promise/always-return, promise/prefer-await-to-then */
+/* eslint-disable n/no-unpublished-require, no-unused-expressions, promise/always-return, promise/prefer-await-to-then */
 
 'use strict';
 
