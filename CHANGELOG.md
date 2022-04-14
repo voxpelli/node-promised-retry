@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.5.0 (2022-04-14)
+
+* **Breaking change:** Now targets at least Node.js 14.x
+* **Minor:** Removed comments from generated types
+* **Minor:** Updated dependencies
+
 ## 0.4.0 (2021-02-14)
 
 * **Breaking change:** Now targets at least Node.js 12.x
