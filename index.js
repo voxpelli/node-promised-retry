@@ -31,10 +31,10 @@ const getDefaultLog = () =>
 /** @typedef {(failures: number) => number|false} RetryDelayCallback */
 
 /**
- * @param {{ retryMin: number, retryBase: number, retryExponent: number }} options
+ * @param {{ retryBase: number, retryExponent: number, retryMin: number }} options
  * @returns {RetryDelayCallback}
  */
-const getDefaultRetryDelay = ({ retryMin, retryBase, retryExponent }) => {
+const getDefaultRetryDelay = ({ retryBase, retryExponent, retryMin }) => {
   return (retries) => {
     return retryMin + Math.floor(
       1000 *
