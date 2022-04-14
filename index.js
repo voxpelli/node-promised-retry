@@ -3,6 +3,12 @@
 
 'use strict';
 
+const {
+  ErrorWithCause,
+  findCauseByReference,
+} = require('pony-cause');
+
+/** @type {() => void} */
 const noop = () => {};
 
 class RetryError extends Error {
@@ -13,9 +19,11 @@ class RetryError extends Error {
   constructor (message, { aborted } = {}) {
     super(message);
 
+    /** @type {string} */
     this.name = this.constructor.name;
     Error.captureStackTrace(this, this.constructor);
 
+    /** @type {boolean} */
     this.aborted = !!aborted;
   }
 }
@@ -54,20 +62,26 @@ const resolveablePromise = () => {
   /** @type {(err: Error) => void} */
   let rejecter;
 
+  /** @type {Promise<T>} */
   const resolveable = new Promise((resolve, reject) => {
     resolver = resolve;
     rejecter = reject;
   });
 
-  // @ts-ignore
-  return [resolveable, resolver, rejecter];
+  return [
+    resolveable,
+    // @ts-ignore
+    resolver,
+    // @ts-ignore
+    rejecter,
+  ];
 };
 
 /**
  * @typedef RetryOptions
  * @property {string} [name="unknown"]
- * @property {function(): void|Promise<void>} [setup]
- * @property {function(): Promise<any>} try
+ * @property {() => void|Promise<void>} [setup]
+ * @property {() => Promise<any>} try
  * @property {function(any): any} success
  * @property {function(any): any} end
  * @property {number} [retryMin=0]
@@ -75,7 +89,7 @@ const resolveablePromise = () => {
  * @property {number} [retryExponent=33]
  * @property {number} [retryLimit]
  * @property {RetryDelayCallback} [retryDelay]
- * @property {function(string): void} [log]
+ * @property {(message: string) => void} [log]
  */
 
 // TODO: Convert into a type templated function instead, to be able to derive the resolved type
@@ -107,29 +121,53 @@ class Retry {
 
     /** @protected */
     this.options = resolvedOptions;
-    /** @protected */
+    /**
+     * @protected
+     * @type {(message: string) => void}
+     */
     this.log = log;
-    /** @protected */
+    /**
+     * @protected
+     * @type {number}
+     */
     this.failures = 0;
-    /** @protected */
+    /**
+     * @protected
+     * @type {NodeJS.Timeout|undefined}
+     */
     this.retrying = undefined;
-    /** @protected */
+    /**
+     * @protected
+     * @type {undefined|((err: Error) => void)}
+     */
     this.abort = undefined;
-    /** @protected */
+    /**
+     * @protected
+     * @type {Promise<*>|undefined}
+     */
     this.promisedResult = undefined;
   }
 
   /**
    * @protected
-   * @param {any} err
+   * @param {unknown} err
    * @returns {Promise<any>}
    */
-  async _maybeRetry (err = new Error('Unknown error')) {
-    this.log(`Failed retry attempt for ${this.options.name}: ${err.stack}`);
+  async _maybeRetry (err) {
+    this.log(
+      `Failed retry attempt for ${this.options.name}: ` +
+      (err instanceof Error ? err.stack : `Unknown error of type: ${typeof err}`)
+    );
 
     // If we're stopped or aborted, then we should not give it a new attempt
-    if (this.stopped || err.aborted) {
-      throw err;
+    if (
+      this.stopped ||
+      findCauseByReference(err, RetryError)?.aborted
+    ) {
+      throw new ErrorWithCause(
+        `Failed retry attempt for ${this.options.name}`,
+        { cause: err }
+      );
     }
 
     this.failures += 1;
@@ -162,7 +200,7 @@ class Retry {
       this.retrying = undefined;
       this.abort = undefined;
       if (this.stopped) {
-        throw new Error(this.options.name + ' has been stopped');
+        throw new Error(`${this.options.name} has been stopped`);
       }
       return this.options.try();
     }));
@@ -174,7 +212,7 @@ class Retry {
         this.retrying = setTimeout(next, delay);
         this.abort = reject;
       } else {
-        throw new RetryError('Retries aborted after ' + this.failures + ' attempts', { aborted: true });
+        throw new RetryError(`Retries aborted after ${this.failures} attempts`, { aborted: true });
       }
     } else {
       process.nextTick(next);
@@ -214,6 +252,7 @@ class Retry {
     return this.options.success(result) || result;
   }
 
+  // TODO: When result has been resolved, stop caching the promise
   // TODO: Improve return type!
   /**
    * @param {boolean} [createNew]
@@ -238,7 +277,7 @@ class Retry {
       this.retrying = undefined;
       this.promisedResult = undefined;
       if (this.abort) {
-        this.abort(new Error('Retries of ' + this.options.name + ' ended'));
+        this.abort(new Error(`Retries of ${this.options.name} ended`));
       }
     }
 
