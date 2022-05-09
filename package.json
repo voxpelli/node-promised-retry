@@ -76,6 +76,6 @@
     "typescript": "~4.6.0"
   },
   "dependencies": {
-    "pony-cause": "^1.1.1"
+    "pony-cause": "^2.0.0"
   }
 }
