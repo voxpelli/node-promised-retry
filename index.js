@@ -16,8 +16,10 @@ class RetryError extends Error {
    * @param {string} message
    * @param {{ aborted?: boolean }} [options]
    */
-  constructor (message, { aborted } = {}) {
+  constructor (message, options) {
     super(message);
+
+    const { aborted } = options || {};
 
     /** @type {string} */
     this.name = this.constructor.name;
