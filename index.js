@@ -101,10 +101,10 @@ class Retry {
     const {
       log = getDefaultLog(),
       name = 'unknown',
-      retryMin = 0,
       retryBase = 1.2,
-      retryExponent = 33,
       retryDelay,
+      retryExponent = 33,
+      retryMin = 0,
       ...optionalOptions
     } = options;
 
