@@ -80,7 +80,7 @@ describe('Retry', () => {
         success: successSpy,
         end: endSpy,
         retryDelay: retryStub,
-        log: () => {}
+        log: () => {},
       });
     });
 
@@ -142,7 +142,7 @@ describe('Retry', () => {
         'try': tryStub,
         success: successSpy,
         end: endSpy,
-        log: () => {}
+        log: () => {},
       });
 
       tryStub.onFirstCall().rejects(new Error('foo'));
@@ -339,7 +339,7 @@ describe('Retry', () => {
         end: endSpy,
         retryDelay: retryStub,
         log: () => {},
-        retryLimit: 1
+        retryLimit: 1,
       });
 
       let fulfilled = false;
