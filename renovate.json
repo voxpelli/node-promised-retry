@@ -1,5 +1,5 @@
 {
   "extends": [
-    "github>voxpelli/renovate-config"
+    "github>voxpelli/renovate-config:default"
   ]
 }
