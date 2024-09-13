@@ -27,7 +27,7 @@
     "build:0": "run-s clean",
     "build:1-declaration": "tsc -p declaration.tsconfig.json",
     "build": "run-s build:*",
-    "check:installed-check": "installed-check -i eslint-plugin-jsdoc -i installed-check -i knip",
+    "check:installed-check": "installed-check",
     "check:knip": "knip",
     "check:lint": "eslint",
     "check:tsc": "tsc",
@@ -48,19 +48,19 @@
     "@types/sinon": "^10.0.15",
     "@types/sinon-chai": "^3.2.9",
     "@voxpelli/eslint-config": "^21.0.0",
-    "@voxpelli/tsconfig": "^8.0.0",
+    "@voxpelli/tsconfig": "^14.0.0",
     "c8": "^8.0.0",
     "chai": "^4.3.7",
     "eslint": "^9.10.0",
     "husky": "^8.0.3",
-    "installed-check": "^8.0.0",
-    "knip": "^2.14.3",
+    "installed-check": "^9.3.0",
+    "knip": "^5.30.2",
     "mocha": "^10.2.0",
     "npm-run-all2": "^6.0.5",
     "sinon": "^15.2.0",
     "sinon-chai": "^3.7.0",
     "type-coverage": "^2.26.0",
-    "typescript": "~5.1.6"
+    "typescript": "~5.5.4"
   },
   "dependencies": {
     "pony-cause": "^2.0.0"

@@ -7,6 +7,6 @@
     "test/**/*.js",
   ],
   "compilerOptions": {
-    "removeComments": true
+    "types": ["node", "mocha"]
   }
 }
